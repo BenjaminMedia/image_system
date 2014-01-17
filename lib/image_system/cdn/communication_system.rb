@@ -25,8 +25,8 @@ module ImageSystem
         options = default_download_options.merge(options)
         params = set_aspect_options(options).delete_if { |k, v| v.nil? }.to_param
 
-        url = "http://#{CDN::ApiData::CDN_APP_HOST}/#{uuid}.jpg"
-        url = url + "?#{params}" unless params.empty?
+        # there is default params so its never gonna be empty
+        "http://#{CDN::ApiData::CDN_APP_HOST}/#{uuid}.jpg" + "?#{params}"
       end
 
       def self.rename(options = {})
