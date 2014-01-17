@@ -163,7 +163,6 @@ describe ImageSystem::CDN::CommunicationSystem do
       res = subject.download(args)
       expect(res).to_not include("crop")
     end
-
   end
 
   describe ".rename" do

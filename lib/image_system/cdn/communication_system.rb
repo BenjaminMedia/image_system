@@ -114,6 +114,7 @@ module ImageSystem
         {result: result, width: file["width"], height: file["height"]}
       end
 
+
       def self.crop_options(crop)
         return {} unless crop
 
