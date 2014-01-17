@@ -26,7 +26,7 @@ module ImageSystem
         params = set_aspect_options(options).delete_if { |k, v| v.nil? }.to_param
 
         # there is default params so its never gonna be empty
-        "http://#{CDN::ApiData::CDN_APP_HOST}/#{uuid}.jpg" + "?#{params}"
+        url_to_image(uuid, params)
       end
 
       def self.rename(options = {})
@@ -120,6 +120,10 @@ module ImageSystem
         else
           raise Exceptions::WrongCroppingFormatException.new(exception_message)
         end
+      end
+
+      def self.url_to_image(uuid, params)
+        "http://#{CDN::ApiData::CDN_APP_HOST}/#{uuid}.jpg" + "?#{params}"
       end
     end
   end
