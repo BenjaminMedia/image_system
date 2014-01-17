@@ -147,7 +147,7 @@ describe ImageSystem::CDN::CommunicationSystem do
        "Wrong cropping coordinates format. The crop coordinates should be given in the following format { crop: { x1: value, y1: value, x2: value, y2: value } } ")
     end
 
-    it "fails if the passed cropping options have one repeated coordinate" do
+    it "returns an image with the specified cropping coordinates even thought they are not in the same order" do
       coordinates = {crop: { x1: 50, y2: 70, x2: 350, y1: 450 } }
       args = { uuid: @uuid }.merge(coordinates)
       res = subject.download(args)
