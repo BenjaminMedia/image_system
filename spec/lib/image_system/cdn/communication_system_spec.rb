@@ -126,6 +126,34 @@ describe ImageSystem::CDN::CommunicationSystem do
       expect(res).to include("mode=crop")
     end
 
+    it "returns an image with the specified cropping coordinates" do
+      coordinates = {crop: { x1: 50, y1: 70, x2: 350, y2: 450 } }
+      args = { uuid: @uuid }.merge(coordinates)
+      res = subject.download(args)
+      expect(res).to include("50,70,350,450".to_query(:crop))
+    end
+
+    it "fails if the passed cropping options does not have the 4 coordinates" do
+      coordinates = {crop: { x1: 50, y1: 70, x2: 350 } }
+      args = { uuid: @uuid }.merge(coordinates)
+      expect { subject.download(args) }.to raise_error(Exceptions::WrongCroppingFormatException,
+       "Wrong cropping coordinates format. The crop coordinates should be given in the following format { crop: { x1: value, y1: value, x2: value, y2: value } } ")
+    end
+
+    it "fails if the passed cropping options have one repeated coordinate" do
+      coordinates = {crop: { x1: 50, y2: 70, x2: 350, y2: 450 } }
+      args = { uuid: @uuid }.merge(coordinates)
+      expect { subject.download(args) }.to raise_error(Exceptions::WrongCroppingFormatException,
+       "Wrong cropping coordinates format. The crop coordinates should be given in the following format { crop: { x1: value, y1: value, x2: value, y2: value } } ")
+    end
+
+    it "fails if the passed cropping options have one repeated coordinate" do
+      coordinates = {crop: { x1: 50, y2: 70, x2: 350, y1: 450 } }
+      args = { uuid: @uuid }.merge(coordinates)
+      res = subject.download(args)
+      expect(res).to include("50,450,350,70".to_query(:crop))
+    end
+
   end
 
   describe ".rename" do

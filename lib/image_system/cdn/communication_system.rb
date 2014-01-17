@@ -20,12 +20,13 @@ module ImageSystem
         uuid = options.delete(:uuid)
         raise ArgumentError.new("uuid is not set") if uuid.blank?
 
+        crop = options.delete(:crop)
+        options = options.merge(crop_options(crop))
         options = default_download_options.merge(options)
         params = set_aspect_options(options).delete_if { |k, v| v.nil? }.to_param
 
         url = "http://#{CDN::ApiData::CDN_APP_HOST}/#{uuid}.jpg"
         url = url + "?#{params}" unless params.empty?
-        url
       end
 
       def self.rename(options = {})
@@ -107,6 +108,19 @@ module ImageSystem
         end
       end
 
+      def self.crop_options(crop)
+        return {} unless crop
+
+        exception_message = "Wrong cropping coordinates format. The crop coordinates should be given in the following format { crop: { x1: value, y1: value, x2: value, y2: value } } "
+        # checks if all the options are set for cropping
+        res = [:x1, :y1, :x2, :y2] - crop.keys
+
+        if res.empty?
+          { :crop => "#{crop[:x1]},#{crop[:y1]},#{crop[:x2]},#{crop[:y2]}" }
+        else
+          raise Exceptions::WrongCroppingFormatException.new(exception_message)
+        end
+      end
     end
   end
 end
