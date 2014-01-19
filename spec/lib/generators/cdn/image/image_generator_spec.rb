@@ -2,12 +2,10 @@ require 'spec_helper'
 require "generators/cdn/image/image_generator"
 require "generator_spec"
 
-
 describe Cdn::Generators::ImageGenerator do
   destination File.expand_path("../../tmp", __FILE__)
 
   before(:all) do
-    @class_name = "picture"
     prepare_destination
   end
 
