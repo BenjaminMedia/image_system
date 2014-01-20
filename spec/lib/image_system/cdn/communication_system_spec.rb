@@ -154,6 +154,12 @@ describe ImageSystem::CDN::CommunicationSystem do
       expect(res).to include("50,450,350,70".to_query(:crop))
     end
 
+    it "returns a url without cropping if there is no crop coordinates" do
+      args = { uuid: @uuid }
+      res = subject.download(args)
+      expect(res).to_not include("crop")
+    end
+
   end
 
   describe ".rename" do
@@ -178,13 +184,11 @@ describe ImageSystem::CDN::CommunicationSystem do
     end
 
     it "returns an exception if an object is not found", :vcr do
-      expect { subject.rename( old_uuid: "2",
-                                                new_uuid: @new_uuid) }.to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
+      expect { subject.rename( old_uuid: "2", new_uuid: @new_uuid) }.to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
     end
 
     it "returns an exception if there is an image with the same uuid as new uuid", :vcr do
-      expect { subject.rename( old_uuid: @old_uuid,
-                                                new_uuid: @already_existing_uuid) }.to raise_error(Exceptions::AlreadyExistsException, "There is an image with the same uuid as the new one")
+      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @already_existing_uuid) }.to raise_error(Exceptions::AlreadyExistsException, "There is an image with the same uuid as the new one")
     end
 
     it "returns an error if the old uuid is not provided" do
@@ -196,14 +200,12 @@ describe ImageSystem::CDN::CommunicationSystem do
     end
 
     it "returns an error if the old uuid is the same as the new" do
-      expect { subject.rename( old_uuid: @old_uuid,
-                                                new_uuid: @old_uuid) }.to raise_error(ArgumentError,"old uuid is the same as the new")
+      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @old_uuid) }.to raise_error(ArgumentError,"old uuid is the same as the new")
     end
 
     it "returns an error if the renaming fails" do
       CDNConnect::APIClient.any_instance.stub(:rename_object) { Response.new }
-      expect { subject.rename( old_uuid: @old_uuid,
-                                                new_uuid: @new_uuid) }.to raise_error(Exceptions::CdnUnknownException, "cdn communication system failed")
+      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @new_uuid) }.to raise_error(Exceptions::CdnUnknownException, "cdn communication system failed")
     end
 
   end
