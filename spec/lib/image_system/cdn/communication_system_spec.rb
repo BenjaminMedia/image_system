@@ -51,11 +51,13 @@ describe ImageSystem::CDN::CommunicationSystem do
     end
 
     it "returns an error message if uuid is nil" do
-      expect { subject.upload( uuid: nil, source_file_path: @file_path) }.to raise_error(ArgumentError, "uuid is not set")
+      expect { subject.upload( uuid: nil, source_file_path: @file_path) }.
+        to raise_error(ArgumentError, "uuid is not set")
     end
 
     it "returns an error message if source_file_path is not set" do
-      expect { subject.upload( uuid: @uuid_to_upload, source_file_path: nil) }.to raise_error(ArgumentError, "source file(s) required")
+      expect { subject.upload( uuid: @uuid_to_upload, source_file_path: nil) }.
+        to raise_error(ArgumentError, "source file(s) required")
     end
 
     it "returns an error message for missing uuid if no arguments are set" do
@@ -64,7 +66,9 @@ describe ImageSystem::CDN::CommunicationSystem do
 
     it "returns an error message if the upload fails from cdn" do
       CDNConnect::APIClient.any_instance.stub(:upload) { Response.new(:status => 503) }
-      expect { subject.upload( uuid: @uuid_to_upload, source_file_path: @file_path) }.to raise_error(Exceptions::CdnResponseException, "http_response was nil")
+
+      expect { subject.upload( uuid: @uuid_to_upload, source_file_path: @file_path) }.
+        to raise_error(Exceptions::CdnResponseException, "http_response was nil")
     end
 
   end
@@ -184,11 +188,13 @@ describe ImageSystem::CDN::CommunicationSystem do
     end
 
     it "returns an exception if an object is not found", :vcr do
-      expect { subject.rename( old_uuid: "2", new_uuid: @new_uuid) }.to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
+      expect { subject.rename( old_uuid: "2", new_uuid: @new_uuid) }.
+        to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
     end
 
     it "returns an exception if there is an image with the same uuid as new uuid", :vcr do
-      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @already_existing_uuid) }.to raise_error(Exceptions::AlreadyExistsException, "There is an image with the same uuid as the new one")
+      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @already_existing_uuid) }.
+        to raise_error(Exceptions::AlreadyExistsException, "There is an image with the same uuid as the new one")
     end
 
     it "returns an error if the old uuid is not provided" do
@@ -200,12 +206,14 @@ describe ImageSystem::CDN::CommunicationSystem do
     end
 
     it "returns an error if the old uuid is the same as the new" do
-      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @old_uuid) }.to raise_error(ArgumentError,"old uuid is the same as the new")
+      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @old_uuid) }.
+        to raise_error(ArgumentError,"old uuid is the same as the new")
     end
 
     it "returns an error if the renaming fails" do
       CDNConnect::APIClient.any_instance.stub(:rename_object) { Response.new }
-      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @new_uuid) }.to raise_error(Exceptions::CdnUnknownException, "cdn communication system failed")
+      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @new_uuid) }.
+        to raise_error(Exceptions::CdnUnknownException, "cdn communication system failed")
     end
 
   end
@@ -224,7 +232,8 @@ describe ImageSystem::CDN::CommunicationSystem do
     end
 
     it "does not delete if it does exist and returns an error", :vcr do
-      expect { subject.delete(uuid: "non_existing_uuid") }.to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
+      expect { subject.delete(uuid: "non_existing_uuid") }.
+        to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
     end
 
     it "does not delete if no uuid is given and returns an error" do
@@ -233,7 +242,8 @@ describe ImageSystem::CDN::CommunicationSystem do
 
     it "returns an error if the deleting operation fails" do
       CDNConnect::APIClient.any_instance.stub(:delete_object) { Response.new }
-      expect { subject.delete(uuid: "non_existing_uuid") }.to raise_error(Exceptions::CdnUnknownException, "cdn communication system failed")
+      expect { subject.delete(uuid: "non_existing_uuid") }.
+        to raise_error(Exceptions::CdnUnknownException, "cdn communication system failed")
     end
 
   end
@@ -250,7 +260,8 @@ describe ImageSystem::CDN::CommunicationSystem do
     end
 
     it "returns an error if the image for that uuid does not exist", :vcr do
-      expect { res = subject.info(uuid: "non_existing_uuid") }.to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
+      expect { res = subject.info(uuid: "non_existing_uuid") }.
+        to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
     end
 
   end
