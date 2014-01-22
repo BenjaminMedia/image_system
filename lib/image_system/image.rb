@@ -9,6 +9,8 @@ module ImageSystem
       base.class_eval do
         validates :uuid, presence: true
         validates :source_file_path, presence: true
+        validates :width, presence: true
+        validates :height, presence: true
         before_validation :set_uuid, on: :create
         around_save :upload_to_system
       end
