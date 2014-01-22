@@ -13,7 +13,7 @@ module ImageSystem
         options = set_upload_options(uuid, options)
         response = api_client.upload(options)
 
-        error_handling(response.status)
+        upload_response(response)
       end
 
       def self.download(options = {})
@@ -107,6 +107,11 @@ module ImageSystem
         end
       end
 
+      def self.upload_response(response)
+        result = error_handling(response.status)
+        file = response.files.first
+        {result: result, width: file["width"], height: file["height"]}
+      end
     end
   end
 end
