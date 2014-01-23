@@ -9,7 +9,7 @@ module ImageSystem
 
       included do
         validates :uuid, presence: true
-        validates :source_file_path, presence: true
+        validates :source_file_path, presence: true, on: :create
         validates :width, presence: true
         validates :height, presence: true
       end

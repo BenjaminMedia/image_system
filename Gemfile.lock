@@ -136,7 +136,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  activesupport
   codeclimate-test-reporter
   debugger
   generator_spec

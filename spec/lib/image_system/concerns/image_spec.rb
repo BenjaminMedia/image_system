@@ -5,14 +5,22 @@ describe ImageSystem::Concerns::Image do
   describe "#validations" do
 
     it "does not validate an image without the presence of uuid" do
-      invalid_photo = Photo.new(source_file_path: test_image_path)
-      uuid = nil
+      invalid_photo = Photo.new(source_file_path: test_image_path, height: 100, width: 100)
       expect(invalid_photo).to_not be_valid
     end
 
     it "does not validate an image without the presence of source_file_path" do
-      invalid_photo = Photo.new(uuid: create_uuid)
+      invalid_photo = Photo.new(uuid: create_uuid, height: 100, width: 100)
       expect(invalid_photo).to_not be_valid
+    end
+
+    it "Validate an image without the presence of source_file_path if its not a new record" do
+      photo = Photo.new(uuid: create_uuid, source_file_path: test_image_path, height: 100, width: 100)
+      expect(photo).to be_valid
+      photo.save
+      photo.source_file_path = nil
+      photo.save
+      expect(photo).to be_valid
     end
 
     it "does not validate an image without the presence of width" do

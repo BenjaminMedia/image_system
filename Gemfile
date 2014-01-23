@@ -5,9 +5,6 @@ gemspec
 
 group :development, :test do
 
-  # this a rails only gem
-  gem "activesupport"
-
   # Use guard for automated testing
   gem "guard-rspec", require: false
 
