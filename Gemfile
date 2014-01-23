@@ -4,6 +4,7 @@ source "https://rubygems.org"
 gemspec
 
 group :development, :test do
+
   # Use guard for automated testing
   gem "guard-rspec", require: false
 
