@@ -47,7 +47,7 @@ describe ImageSystem::CDN::CommunicationSystem do
 
     it "receives a file and uploads it to cdn", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
       res = subject.upload( uuid: @uuid_to_upload, source_file_path: @file_path)
-      expect(res).to eq(true)
+      expect(res).to eq({result: true, width: 998, height: 1500})
     end
 
     it "returns an error message if uuid is nil" do

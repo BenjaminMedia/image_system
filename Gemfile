@@ -4,6 +4,10 @@ source "https://rubygems.org"
 gemspec
 
 group :development, :test do
+
+  # Create testing data with Factory Girl
+  gem "factory_girl"
+
   # Use guard for automated testing
   gem "guard-rspec", require: false
 
