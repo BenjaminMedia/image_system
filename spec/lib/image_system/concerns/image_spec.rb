@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe ImageSystem::Concerns::Image do
 
-  let(:new_photo) { build(:photo, uuid: create_uuid, source_file_path: test_image_path, height: 100, width: 100 ) }
+  let(:new_photo) { build(:photo, uuid: create_uuid, source_file_path: test_image_path, height: 100, width: 100) }
   let(:photo) { create(:photo, uuid: create_uuid, source_file_path: test_image_path, height: 100, width: 100) }
 
   describe "#validations" do
@@ -64,6 +64,7 @@ describe ImageSystem::Concerns::Image do
     end
 
     describe "upload_to_system" do
+
       it "does not save an image that is new and has not received a response from cdn" do
         ImageSystem::CDN::CommunicationSystem.stub(:upload).and_raise(Exceptions::CdnResponseException.new("http_response was nil"))
         ImageSystem::CDN::CommunicationSystem.should_receive(:upload)
@@ -97,8 +98,62 @@ describe ImageSystem::Concerns::Image do
 
         photo.uuid = create_uuid
         ImageSystem::CDN::CommunicationSystem.should_receive(:upload)
-        photo.save
+        expect(photo.save).to eq(true)
       end
     end
   end
+
+
+  describe "#destroy" do
+
+     before(:each) do
+      ImageSystem::CDN::CommunicationSystem.stub(:upload)
+    end
+
+    it  "deletes an image if it is deleted successfully from the server" do
+      ImageSystem::CDN::CommunicationSystem.stub(:delete) { true }
+      ImageSystem::CDN::CommunicationSystem.should_receive(:delete)
+      expect(photo.destroy).to eq(photo)
+    end
+
+    it "does not delete an image that is a new record" do
+      ImageSystem::CDN::CommunicationSystem.should_not_receive(:delete)
+      expect(new_photo.destroy).to eq(new_photo)
+    end
+
+    it  "does not delete an image if there is an unknown error from the server" do
+      ImageSystem::CDN::CommunicationSystem.stub(:delete).and_raise(Exceptions::CdnUnknownException.new("cdn communication system failed"))
+      ImageSystem::CDN::CommunicationSystem.should_receive(:delete)
+      expect(photo.destroy).to eq(false)
+    end
+
+    it  "does not delete an image if there isn't a response from the server" do
+      ImageSystem::CDN::CommunicationSystem.stub(:delete).and_raise(Exceptions::CdnResponseException.new("http_response was nil"))
+      ImageSystem::CDN::CommunicationSystem.should_receive(:delete)
+      expect(photo.destroy).to eq(false)
+    end
+  end
+
+  # describe "#url" do
+
+  #   it "returns an url to the image with the given uuid" do
+  #     Photo.any_instance.stub(:new_record?) { false }
+  #     CDN::CommunicationSystem.stub(:info)
+  #     CDN::CommunicationSystem.should_receive(:download)
+  #     photo.url
+  #   end
+
+  #   it "returns nil if image is a new record" do
+  #     Photo.any_instance.stub(:new_record?) { true }
+  #     CDN::CommunicationSystem.stub(:info)
+  #     expect(photo.url).to be_nil
+  #   end
+
+  #   it "returns nil if the object does not exist" do
+  #     Photo.any_instance.stub(:new_record?) { false }
+  #     CDN::CommunicationSystem.stub(:info).with({ uuid: new_photo.uuid }).and_raise(Exceptions::NotFoundException.new("Does not exist any image with that uuid"))
+  #     expect(new_photo.url).to be_nil
+  #   end
+  # end
+
 end

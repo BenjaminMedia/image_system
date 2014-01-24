@@ -22,6 +22,9 @@ log
 spec/tmp/*
 **/spec/tmp/*
 
+# dummy app
+spec/dummy/dummy_imagesystem_development
+
 
 # Zeus files
 .zeus.sock
