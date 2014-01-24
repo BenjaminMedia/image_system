@@ -106,7 +106,7 @@ describe ImageSystem::Concerns::Image do
 
   describe "#destroy" do
 
-     before(:each) do
+    before(:each) do
       ImageSystem::CDN::CommunicationSystem.stub(:upload)
     end
 
@@ -134,26 +134,29 @@ describe ImageSystem::Concerns::Image do
     end
   end
 
-  # describe "#url" do
+  describe "#url" do
 
-  #   it "returns an url to the image with the given uuid" do
-  #     Photo.any_instance.stub(:new_record?) { false }
-  #     CDN::CommunicationSystem.stub(:info)
-  #     CDN::CommunicationSystem.should_receive(:download)
-  #     photo.url
-  #   end
+    before(:each) do
+      ImageSystem::CDN::CommunicationSystem.stub(:upload)
+    end
 
-  #   it "returns nil if image is a new record" do
-  #     Photo.any_instance.stub(:new_record?) { true }
-  #     CDN::CommunicationSystem.stub(:info)
-  #     expect(photo.url).to be_nil
-  #   end
+    it "returns an url to the image with the given uuid" do
+      ImageSystem::CDN::CommunicationSystem.stub(:info)
+      ImageSystem::CDN::CommunicationSystem.should_receive(:download)
+      photo.url
+    end
 
-  #   it "returns nil if the object does not exist" do
-  #     Photo.any_instance.stub(:new_record?) { false }
-  #     CDN::CommunicationSystem.stub(:info).with({ uuid: new_photo.uuid }).and_raise(Exceptions::NotFoundException.new("Does not exist any image with that uuid"))
-  #     expect(new_photo.url).to be_nil
-  #   end
-  # end
+    it "returns nil if image is a new record" do
+      ImageSystem::CDN::CommunicationSystem.stub(:info)
+      ImageSystem::CDN::CommunicationSystem.should_not_receive(:download)
+      expect(new_photo.url).to be_nil
+    end
+
+    it "returns nil if the object does not exist" do
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid }).and_raise(Exceptions::NotFoundException.new("Does not exist any image with that uuid"))
+      ImageSystem::CDN::CommunicationSystem.should_not_receive(:download)
+      expect(photo.url).to be_nil
+    end
+  end
 
 end
