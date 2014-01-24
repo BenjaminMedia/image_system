@@ -8,22 +8,22 @@ module ImageSystem
       attr_accessor :source_file_path
 
       included do
-        # validations
+        # Validations
         validates :uuid, presence: true
         validates :source_file_path, presence: true, on: :create
         validates :width, presence: true
         validates :height, presence: true
 
-        # callbacks
+        # Callbacks
         before_validation :set_uuid, on: :create
         before_validation :upload_to_system
       end
 
       def destroy
-        rescue_from_cdn_failure_on_destroy do
-          response = self.new_record? || CDN::CommunicationSystem.delete(uuid: self.uuid)
-          super if response
+        response = rescue_from_cdn_failure("destroy") do
+          self.new_record? || CDN::CommunicationSystem.delete(uuid: self.uuid)
         end
+        super if response
       end
 
       def url
@@ -38,27 +38,15 @@ module ImageSystem
 
     private
 
-      def rescue_from_cdn_failure_on_upload(&block)
+      def rescue_from_cdn_failure(method, &block)
         begin
           block.call
         rescue Exceptions::CdnResponseException => e
           # should log the problem
-          self.errors.add(:image, "The photo could not be uploaded")
+          send("rescue_#{method}_response")
         rescue Exceptions::CdnUnknownException => e
           # should log the problem
-          self.errors.add(:image, "The photo could not be uploaded")
-        end
-      end
-
-      def rescue_from_cdn_failure_on_destroy(&block)
-        begin
-          block.call
-        rescue Exceptions::CdnResponseException => e
-          # should log the problem
-          return false
-        rescue Exceptions::CdnUnknownException => e
-          # should log the problem
-          return false
+          send("rescue_#{method}_response")
         end
       end
 
@@ -67,11 +55,19 @@ module ImageSystem
       end
 
       def upload_to_system
-        rescue_from_cdn_failure_on_upload do
+        rescue_from_cdn_failure("upload") do
           if self.new_record? || self.changed.include?("uuid")
             CDN::CommunicationSystem.upload(uuid: self.uuid, source_file_path: self.source_file_path, queue_processing: false)
           end
         end
+      end
+
+      def rescue_upload_response
+        self.errors.add(:image, "The photo could not be uploaded")
+      end
+
+      def rescue_destroy_response
+        false
       end
 
     end

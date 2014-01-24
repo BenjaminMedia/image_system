@@ -124,13 +124,13 @@ describe ImageSystem::Concerns::Image do
     it  "does not delete an image if there is an unknown error from the server" do
       ImageSystem::CDN::CommunicationSystem.stub(:delete).and_raise(Exceptions::CdnUnknownException.new("cdn communication system failed"))
       ImageSystem::CDN::CommunicationSystem.should_receive(:delete)
-      expect(photo.destroy).to eq(false)
+      expect(photo.destroy).to eq(nil)
     end
 
     it  "does not delete an image if there isn't a response from the server" do
       ImageSystem::CDN::CommunicationSystem.stub(:delete).and_raise(Exceptions::CdnResponseException.new("http_response was nil"))
       ImageSystem::CDN::CommunicationSystem.should_receive(:delete)
-      expect(photo.destroy).to eq(false)
+      expect(photo.destroy).to eq(nil)
     end
   end
 
