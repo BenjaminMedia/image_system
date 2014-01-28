@@ -105,8 +105,10 @@ describe ImageSystem::Concerns::Image do
       it "sets the height and width if upload is correct" do
         expect(new_photo_to_upload.height).to be_nil
         expect(new_photo_to_upload.width).to be_nil
-        ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_return({result: true , height: 100, width: 100})
-        expect(new_photo_to_upload.save).to eq(true)
+        ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_return({result: true , height: 100, width: 200})
+        new_photo_to_upload.save
+        expect(new_photo_to_upload.height).to eq(100)
+        expect(new_photo_to_upload.width).to eq(200)
       end
     end
   end
