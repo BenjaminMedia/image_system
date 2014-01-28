@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    image_system (0.0.3)
+    image_system (0.0.4)
       activerecord
       cdnconnect-api
       uuidtools
