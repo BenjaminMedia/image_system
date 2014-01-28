@@ -57,7 +57,9 @@ module ImageSystem
       def upload_to_system
         rescue_from_cdn_failure("upload") do
           if self.new_record? || self.changed.include?("uuid")
-            CDN::CommunicationSystem.upload(uuid: self.uuid, source_file_path: self.source_file_path, queue_processing: false)
+            res = CDN::CommunicationSystem.upload(uuid: self.uuid, source_file_path: self.source_file_path, queue_processing: false)
+            self.width = res[:width]
+            self.height = res[:height]
           end
         end
       end
