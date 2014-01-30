@@ -128,12 +128,10 @@ module ImageSystem
         end
       end
 
-<<<<<<< HEAD
-=======
       def self.url_to_image(uuid, params)
         "http://#{CDN::ApiData::CDN_APP_HOST}/#{uuid}.jpg" + "?#{params}"
       end
->>>>>>> fixed url under code review advice
+
     end
   end
 end
