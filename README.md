@@ -2,7 +2,7 @@ image_system
 ============
 
 
-[![Build Status](https://travis-ci.org/BenjaminMedia/image_system.png?branch=develop)](https://travis-ci.org/BenjaminMedia/image_system)
+[![Build Status](https://travis-ci.org/BenjaminMedia/image_system.png?branch=master)](https://travis-ci.org/BenjaminMedia/image_system)
 
 This is a image system, which will provide:
 
