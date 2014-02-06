@@ -7,7 +7,7 @@ module Generators
     include Rails::Generators::Migration
     include ImageSystem::Generators::GeneratorHelpers
 
-    desc "needs to be defined"
+    desc "This adds a crop model and the migrations to create the relation with the given class name"
 
     argument :class_name, :type => :string
 
@@ -17,8 +17,8 @@ module Generators
 
     source_root File.expand_path('../templates', __FILE__)
 
-    def create_migrations
-      raise NameError.new(model_already_exists_error) unless model_exists?(destination_root, class_name)
+    def creates_model_and_migrations
+      raise NameError.new(model_does_not_exists_error) unless model_exists?(destination_root, class_name)
       raise NameError.new(crop_model_already_exists_error) if model_exists?(destination_root, "crop")
 
       template "crop_model.rb", "app/models/crop.rb"
@@ -32,7 +32,7 @@ module Generators
 
   private
 
-    def model_already_exists_error
+    def model_does_not_exists_error
       "The model #{class_name.camelize} does not seem to exist. Verify the model exists or run rails g cdn:#{class_name}"
     end
 
