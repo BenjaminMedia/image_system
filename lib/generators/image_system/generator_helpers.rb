@@ -14,6 +14,14 @@ module ImageSystem
         File.exists?(File.join(root, model_path(model)))
       end
 
+      def migration_path
+        @migration_path ||= File.join("db", "migrate")
+      end
+
+      def migration_exists?(root, migration_name)
+        Dir.glob("#{File.join(root, migration_path)}/[0-9]*_*.rb").grep(/\d+_#{migration_name}.rb$/).first
+      end
+
     end
   end
 end
