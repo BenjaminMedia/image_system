@@ -14,6 +14,11 @@ module LibHelpers
     File.should_receive(:exists?).with(args).and_return(exists)
   end
 
+  def stub_model_file_and_unstub_after(model_name, exists)
+    args = File.join(Rails.root, File.join("tmp","app", "models", "#{model_name}.rb"))
+    allow(File).to receive(:exists?).with(args).and_return(exists) { File.unstub(:exists?) }
+  end
+
 end
 
 RSpec.configure do |config|
