@@ -1,5 +1,5 @@
 class Crop < ActiveRecord::Base
 
-  #Associations
+  # Associations
   belongs_to :<%= class_name %>
 end

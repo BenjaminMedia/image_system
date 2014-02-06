@@ -13,6 +13,8 @@ module Generators
 
     def create_model_and_migrations
       raise NameError.new(model_already_exists_error) unless model_exists?(destination_root, "aspect")
+
+      template "aspect_model.rb", "app/models/aspect.rb"
     end
 
   private
