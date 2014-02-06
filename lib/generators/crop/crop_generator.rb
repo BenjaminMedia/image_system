@@ -25,21 +25,11 @@ module Generators
 
       template "crop_model.rb", "app/models/crop.rb"
 
-      if migration_exists?
+      if migration_exists?(destination_root, "create_crops")
         raise NameError.new(migration_alredy_exists_error)
       else
         migration_template 'create_crops.rb', migration_path + "/create_crops.rb"
       end
-    end
-
-  private
-
-    def migration_path
-      @migration_path ||= File.join("db", "migrate")
-    end
-
-    def migration_exists?
-      Dir.glob("#{File.join(destination_root, migration_path)}/[0-9]*_*.rb").grep(/\d+_create_crops.rb$/).first
     end
 
   end
