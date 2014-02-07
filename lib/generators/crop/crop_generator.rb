@@ -21,27 +21,16 @@ module Generators
 
     def creates_model_and_migrations
       raise NameError.new(model_does_not_exists_error(class_name)) unless model_exists?(destination_root, class_name)
-      raise NameError.new(crop_model_already_exists_error(class_name)) if model_exists?(destination_root, "crop")
+      raise NameError.new(crop_model_already_exists_error(class_name)) if model_exists?(destination_root, "#{class_name}_crop")
 
-      template "crop_model.rb", "app/models/crop.rb"
+      template "crop_model.rb", "app/models/#{class_name}_crop.rb"
 
-      if migration_exists?
-        raise NameError.new(migration_alredy_exists_error)
+      if migration_exists?(destination_root, "create_#{class_name}_crops")
+        raise NameError.new(migration_alredy_exists_error("create_#{class_name}_crops"))
       else
-        migration_template 'create_crops.rb', migration_path + "/create_crops.rb"
+        migration_template 'create_crops.rb', migration_path + "/create_#{class_name}_crops.rb"
       end
     end
-
-  private
-
-    def migration_path
-      @migration_path ||= File.join("db", "migrate")
-    end
-
-    def migration_exists?
-      Dir.glob("#{File.join(destination_root, migration_path)}/[0-9]*_*.rb").grep(/\d+_create_crops.rb$/).first
-    end
-
   end
 end
 

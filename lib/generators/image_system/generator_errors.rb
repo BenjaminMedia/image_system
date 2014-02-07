@@ -7,7 +7,7 @@ module ImageSystem
       end
 
       def crop_model_already_exists_error(class_name)
-        "The crop model already exists:
+        "The #{class_name.camelize}Crop model already exists:
           make sure it has a connection to the given class like this
 
             belongs_to :#{class_name}
@@ -19,10 +19,23 @@ module ImageSystem
           and run rails g crop:#{class_name} again and we will create it for you"
       end
 
-      def migration_alredy_exists_error
-        "A migration with the name create crops already exists please remove it to generate a new one"
+      def migration_alredy_exists_error(migration_name)
+        "A migration with the name #{migration_name} already exists please remove it to generate a new one"
       end
 
+      def aspect_model_already_exists_error
+        "The Aspect model already exists:
+          make sure it has a connection to crop like this:
+
+            has_many :crops
+
+          and that it has 2 fields called:
+
+            name and aspec_ratio
+
+          If you want to recreate it remove the aspect model and table
+          and run rails g aspect again and we will create it for you"
+      end
     end
   end
 end
