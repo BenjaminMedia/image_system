@@ -1,7 +1,7 @@
-class Aspect < ActiveRecord::Base
+class <%= class_name.camelize %>Aspect < ActiveRecord::Base
 
   # Associations
-  has_many :crops
+  has_many :<%= class_name %>_crops
 
   # Validations
   validates :name, presence: true
