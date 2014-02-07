@@ -41,7 +41,7 @@ describe Generators::CropGenerator do
 
   it "returns an error if the migration already exists" do
     # runs one time to create the migration
-    error_message = "A migration with the name create crops already exists please remove it to generate a new one"
+    error_message = "A migration with the name create_crops already exists please remove it to generate a new one"
     stub_model_file_and_unstub_after("picture", true)
     run_generator %w(picture)
 

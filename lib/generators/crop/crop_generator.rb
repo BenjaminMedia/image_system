@@ -26,12 +26,11 @@ module Generators
       template "crop_model.rb", "app/models/crop.rb"
 
       if migration_exists?(destination_root, "create_crops")
-        raise NameError.new(migration_alredy_exists_error)
+        raise NameError.new(migration_alredy_exists_error("create_crops"))
       else
         migration_template 'create_crops.rb', migration_path + "/create_crops.rb"
       end
     end
-
   end
 end
 

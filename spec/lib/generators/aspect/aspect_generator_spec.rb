@@ -15,8 +15,7 @@ describe Generators::AspectGenerator do
   end
 
   it "returns an error if model aspect already exists" do
-    error_message = "The model Aspect seems to exist. Please delete the model"
-    expect {run_generator}.to raise_error(NameError, error_message)
+    expect {run_generator}.to raise_error(NameError)
   end
 
   it "creates the aspect model" do
@@ -38,7 +37,7 @@ describe Generators::AspectGenerator do
 
   it "returns an error if the migration already exists" do
     # runs one time to create the migration
-    error_message = "The migration to create an aspect, seems to exist already. Please remove it!"
+    error_message = "A migration with the name create_aspects already exists please remove it to generate a new one"
     stub_model_file_and_unstub_after("aspect", false)
     run_generator
 

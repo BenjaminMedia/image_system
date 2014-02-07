@@ -27,7 +27,6 @@ module Cdn
           migration_template 'create_images_with_cdn_fields.rb', migration_path + migration unless migration_exists?(destination_root, migration)
         end
       end
-
     end
   end
 end
