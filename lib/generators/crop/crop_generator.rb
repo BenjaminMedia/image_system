@@ -21,14 +21,14 @@ module Generators
 
     def creates_model_and_migrations
       raise NameError.new(model_does_not_exists_error(class_name)) unless model_exists?(destination_root, class_name)
-      raise NameError.new(crop_model_already_exists_error(class_name)) if model_exists?(destination_root, "crop")
+      raise NameError.new(crop_model_already_exists_error(class_name)) if model_exists?(destination_root, "#{class_name}_crop")
 
-      template "crop_model.rb", "app/models/crop.rb"
+      template "crop_model.rb", "app/models/#{class_name}_crop.rb"
 
-      if migration_exists?(destination_root, "create_crops")
-        raise NameError.new(migration_alredy_exists_error("create_crops"))
+      if migration_exists?(destination_root, "create_#{class_name}_crops")
+        raise NameError.new(migration_alredy_exists_error("create_#{class_name}_crops"))
       else
-        migration_template 'create_crops.rb', migration_path + "/create_crops.rb"
+        migration_template 'create_crops.rb', migration_path + "/create_#{class_name}_crops.rb"
       end
     end
   end

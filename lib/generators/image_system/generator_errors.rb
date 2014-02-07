@@ -7,7 +7,7 @@ module ImageSystem
       end
 
       def crop_model_already_exists_error(class_name)
-        "The crop model already exists:
+        "The #{class_name.camelize}Crop model already exists:
           make sure it has a connection to the given class like this
 
             belongs_to :#{class_name}
