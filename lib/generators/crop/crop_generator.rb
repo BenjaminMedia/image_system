@@ -1,11 +1,13 @@
 require 'rails/generators'
 require 'rails/generators/active_record'
 require 'generators/image_system/generator_helpers'
+require 'generators/image_system/generator_errors'
 
 module Generators
   class CropGenerator < Rails::Generators::Base
     include Rails::Generators::Migration
     include ImageSystem::Generators::GeneratorHelpers
+    include ImageSystem::Generators::GeneratorErrors
 
     desc "This adds a crop model and the migrations to create the relation with the given class name"
 
@@ -18,8 +20,8 @@ module Generators
     source_root File.expand_path('../templates', __FILE__)
 
     def creates_model_and_migrations
-      raise NameError.new(model_does_not_exists_error) unless model_exists?(destination_root, class_name)
-      raise NameError.new(crop_model_already_exists_error) if model_exists?(destination_root, "crop")
+      raise NameError.new(model_does_not_exists_error(class_name)) unless model_exists?(destination_root, class_name)
+      raise NameError.new(crop_model_already_exists_error(class_name)) if model_exists?(destination_root, "crop")
 
       template "crop_model.rb", "app/models/crop.rb"
 
@@ -31,27 +33,6 @@ module Generators
     end
 
   private
-
-    def model_does_not_exists_error
-      "The model #{class_name.camelize} does not seem to exist. Verify the model exists or run rails g cdn:#{class_name}"
-    end
-
-    def crop_model_already_exists_error
-      "The crop model already exists:
-        make sure it has a connection to the given class like this
-
-          belongs_to :#{class_name}
-
-        And that it has fields with the coordinates with the following
-        names: x1,x2,y1,y2
-
-        If you want to recreate it remove the crop model and table
-        and run rails g crop:#{class_name} again and we will create it for you"
-    end
-
-    def migration_alredy_exists_error
-      "A migration with the name create crops already exists please remove it to generate a new one"
-    end
 
     def migration_path
       @migration_path ||= File.join("db", "migrate")
