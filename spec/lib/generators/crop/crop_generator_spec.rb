@@ -26,10 +26,23 @@ describe Generators::CropGenerator do
     expect {run_generator %w(picture)}.to raise_exception(NameError)
   end
 
-  it "creates a crop model" do
+  it "creates a crop model with the correct relations" do
     stub_model_file_and_unstub_after("picture", true)
     run_generator %w(picture)
     assert_file "app/models/crop.rb", /belongs_to :picture/
+    assert_file "app/models/crop.rb", /belongs_to :aspect/
+  end
+
+  it "creates a crop model with the correct validations" do
+    stub_model_file_and_unstub_after("picture", true)
+    run_generator %w(picture)
+    assert_file "app/models/crop.rb", /validates :y1, presence: true/
+    assert_file "app/models/crop.rb", /validates :x1, presence: true/
+    assert_file "app/models/crop.rb", /validates :y2, presence: true/
+    assert_file "app/models/crop.rb", /validates :x2, presence: true/
+    assert_file "app/models/crop.rb", /validates :picture, presence: true/
+    assert_file "app/models/crop.rb", /validates :aspect, presence: true/
+    assert_file "app/models/crop.rb", /validates :aspect, uniqueness: { scope: :picture }/
   end
 
   it "creates a migration to create the crop table" do
