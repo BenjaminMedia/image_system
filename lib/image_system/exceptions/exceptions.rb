@@ -10,4 +10,7 @@ module Exceptions
 
   class NotFoundException < Exception
   end
+
+  class WrongCroppingFormatException < Exception
+  end
 end
