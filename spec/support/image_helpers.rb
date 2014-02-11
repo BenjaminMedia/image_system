@@ -37,6 +37,10 @@ module ImageHelpers
                                         api_key: ImageSystem::CDN::ApiData::CDN_API_KEY)
   end
 
+  def file_extension(content_type)
+    content_type.split('/').last
+  end
+
 end
 
 RSpec.configure do |config|

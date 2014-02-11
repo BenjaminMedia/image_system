@@ -7,10 +7,9 @@ module ImageSystem
       CDN_DEFAULT_JPEG_QUALITY = 95
 
       def self.upload(options = {})
-        uuid = options.delete(:uuid)
-        raise ArgumentError.new("uuid is not set") if uuid.blank?
 
-        options = set_upload_options(uuid, options)
+
+        options = set_upload_options(options)
         response = api_client.upload(options)
 
         upload_response(response)
@@ -71,8 +70,14 @@ module ImageSystem
         { quality: CDN_DEFAULT_JPEG_QUALITY, aspect: :original }
       end
 
-      def self.set_upload_options(uuid, options)
-        options[:destination_file_name] = "#{uuid}.jpg"
+      def self.set_upload_options(options)
+
+        uuid = options.delete(:uuid)
+        raise ArgumentError.new("uuid is not set") if uuid.blank?
+        file_extension = options.delete(:file_extension)
+        raise ArgumentError.new("File extension is not set") if file_extension.blank?
+
+        options[:destination_file_name] = "#{uuid}.#{file_extension}"
         default_upload_options.merge(options)
       end
 

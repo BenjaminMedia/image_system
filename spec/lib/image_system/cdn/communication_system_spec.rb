@@ -61,30 +61,30 @@ describe ImageSystem::CDN::CommunicationSystem do
     it "returns an error message if the upload fails from cdn" do
       CDNConnect::APIClient.any_instance.stub(:upload) { Response.new(:status => 503) }
 
-      expect { subject.upload( uuid: @uuid_to_upload, source_file_path: @jpg_file.path, file_extension: @jpg_file.content_type) }.
+      expect { subject.upload( uuid: @uuid_to_upload, source_file_path: @jpg_file.path, file_extension: file_extension(@jpg_file.content_type)) }.
         to raise_error(Exceptions::CdnResponseException, "http_response was nil")
     end
 
     it "receives a jpg file and uploads it to cdn", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
-      res = subject.upload(uuid: @uuid_to_upload, source_file_path: @jpg_file.path, file_extension: @jpg_file.content_type)
+      res = subject.upload(uuid: @uuid_to_upload, source_file_path: @jpg_file.path, file_extension: file_extension(@jpg_file.content_type))
       expect(res).to eq({result: true, width: 998, height: 1500})
     end
 
     it "receives a jpeg file and uploads it to cdn", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
       file = uploaded_file(:jpeg_args)
-      res = subject.upload(uuid: @uuid_to_upload, source_file_path: file.path, file_extension: file.content_type)
+      res = subject.upload(uuid: @uuid_to_upload, source_file_path: file.path, file_extension: file_extension(file.content_type))
       expect(res).to eq({result: true, width: 400, height: 316})
     end
 
     it "receives a gif file and uploads it to cdn", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
       file = uploaded_file(:gif_args)
-      res = subject.upload(uuid: @uuid_to_upload, source_file_path: file.path, file_extension: file.content_type)
+      res = subject.upload(uuid: @uuid_to_upload, source_file_path: file.path, file_extension: file_extension(file.content_type))
       expect(res).to eq({result: true, width: 330, height: 263})
     end
 
      it "receives a png file and uploads it to cdn", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
       file = uploaded_file(:png_args)
-      res = subject.upload(uuid: @uuid_to_upload, source_file_path: file.path, file_extension: file.content_type)
+      res = subject.upload(uuid: @uuid_to_upload, source_file_path: file.path, file_extension: file_extension(file.content_type))
       expect(res).to eq({result: true, width: 50, height: 64})
     end
 
