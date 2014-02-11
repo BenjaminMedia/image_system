@@ -7,11 +7,8 @@ module ImageSystem
       CDN_DEFAULT_JPEG_QUALITY = 95
 
       def self.upload(options = {})
-
-
         options = set_upload_options(options)
         response = api_client.upload(options)
-
         upload_response(response)
       end
 
@@ -19,13 +16,16 @@ module ImageSystem
         uuid = options.delete(:uuid)
         raise ArgumentError.new("uuid is not set") if uuid.blank?
 
+        file_extension = options.delete(:file_extension)
+        raise ArgumentError.new("File extension is not set") if file_extension.blank?
+
         crop = options.delete(:crop)
         options = options.merge(crop_options(crop))
         options = default_download_options.merge(options)
         params = set_aspect_options(options).delete_if { |k, v| v.nil? }.to_param
 
         # there is default params so its never gonna be empty
-        url_to_image(uuid, params)
+        url_to_image(uuid, file_extension, params)
       end
 
       def self.rename(options = {})
@@ -133,8 +133,8 @@ module ImageSystem
         end
       end
 
-      def self.url_to_image(uuid, params)
-        "http://#{CDN::ApiData::CDN_APP_HOST}/#{uuid}.jpg" + "?#{params}"
+      def self.url_to_image(uuid, file_extension, params)
+        "http://#{CDN::ApiData::CDN_APP_HOST}/#{uuid}.#{file_extension}" + "?#{params}"
       end
 
     end

@@ -93,12 +93,16 @@ describe ImageSystem::CDN::CommunicationSystem do
   describe ".download" do
 
     it "returns a string with the link to an image given it's uuid" do
-      res = subject.download(uuid: @uuid)
-      expect(res).to include("#{@uuid}.jpg")
+      res = subject.download(uuid: @uuid, file_extension: "png")
+      expect(res).to include("#{@uuid}.png")
     end
 
     it "returns an error message if uuid is nil" do
-      expect { subject.download(uuid: nil) }.to raise_error(ArgumentError, "uuid is not set")
+      expect { subject.download(uuid: nil, file_extension: "jpg") }.to raise_error(ArgumentError, "uuid is not set")
+    end
+
+    it "returns an error message if uuid is nil" do
+      expect { subject.download(uuid: @uuid, file_extension: nil) }.to raise_error(ArgumentError, "File extension is not set")
     end
 
     it "returns an error message if no arguments are given" do
@@ -106,77 +110,77 @@ describe ImageSystem::CDN::CommunicationSystem do
     end
 
     it "returns an image of a certain width if specified" do
-      res = subject.download(uuid: @uuid, width: 100)
+      res = subject.download(uuid: @uuid, file_extension: "jpg", width: 100)
       expect(res).to include("width=100")
     end
 
     it "returns an image of a certain height if specified" do
-      res = subject.download(uuid: @uuid, height: 50)
+      res = subject.download(uuid: @uuid, file_extension: "jpg", height: 50)
       expect(res).to include("height=50")
     end
 
     it "returns an image of a certain height and width if both are specified" do
-      res = subject.download(uuid: @uuid, height: 640, width: 320)
+      res = subject.download(uuid: @uuid, file_extension: "jpg", height: 640, width: 320)
       expect(res).to include("height=640")
       expect(res).to include("width=320")
     end
 
     it "returns an image with no pre-defined heigth or width is values are set as nil" do
-      res = subject.download(uuid: @uuid, height: nil, width: nil)
+      res = subject.download(uuid: @uuid, file_extension: "jpg", height: nil, width: nil)
       expect(res).to_not include("height")
       expect(res).to_not include("width")
     end
 
     it "returns an image with a certain quality if set" do
-      res = subject.download(uuid: @uuid, height: 640, width: 320, quality: 10)
+      res = subject.download(uuid: @uuid, file_extension: "jpg", height: 640, width: 320, quality: 10)
       expect(res).to include("quality=10")
     end
 
     it "returns an image with a quality of 95 if nothing is set" do
-      res = subject.download(uuid: @uuid, height: 640, width: 320)
+      res = subject.download(uuid: @uuid, file_extension: "jpg", height: 640, width: 320)
       expect(res).to include("quality=95")
     end
 
     it "returns an image with the original aspect" do
-      res = subject.download(uuid: @uuid, aspect: :original)
+      res = subject.download(uuid: @uuid, file_extension: "jpg", aspect: :original)
       expect(res).to include("mode=max")
     end
 
      it "returns an image with another aspect if not the original one" do
-      res = subject.download(uuid: @uuid, aspect: :square)
+      res = subject.download(uuid: @uuid, file_extension: "jpg", aspect: :square)
       expect(res).to include("mode=crop")
     end
 
     it "returns an image with the specified cropping coordinates" do
       coordinates = {crop: { x1: 50, y1: 70, x2: 350, y2: 450 } }
-      args = { uuid: @uuid }.merge(coordinates)
+      args = { uuid: @uuid, file_extension: "jpg" }.merge(coordinates)
       res = subject.download(args)
       expect(res).to include("50,70,350,450".to_query(:crop))
     end
 
     it "fails if the passed cropping options does not have the 4 coordinates" do
       coordinates = {crop: { x1: 50, y1: 70, x2: 350 } }
-      args = { uuid: @uuid }.merge(coordinates)
+      args = { uuid: @uuid, file_extension: "jpg" }.merge(coordinates)
       expect { subject.download(args) }.to raise_error(Exceptions::WrongCroppingFormatException,
        "Wrong cropping coordinates format. The crop coordinates should be given in the following format { crop: { x1: value, y1: value, x2: value, y2: value } } ")
     end
 
     it "fails if the passed cropping options have one repeated coordinate" do
       coordinates = {crop: { x1: 50, y2: 70, x2: 350, y2: 450 } }
-      args = { uuid: @uuid }.merge(coordinates)
+      args = { uuid: @uuid, file_extension: "jpg" }.merge(coordinates)
       expect { subject.download(args) }.to raise_error(Exceptions::WrongCroppingFormatException,
        "Wrong cropping coordinates format. The crop coordinates should be given in the following format { crop: { x1: value, y1: value, x2: value, y2: value } } ")
     end
 
     it "returns an image with the specified cropping coordinates even thought they are not in the same order" do
       coordinates = {crop: { x1: 50, y2: 70, x2: 350, y1: 450 } }
-      args = { uuid: @uuid }.merge(coordinates)
+      args = { uuid: @uuid, file_extension: "jpg" }.merge(coordinates)
       res = subject.download(args)
       expect(res).to include("50,450,350,70".to_query(:crop))
     end
 
     it "returns a url without cropping if there is no crop coordinates" do
-      args = { uuid: @uuid }
+      args = { uuid: @uuid, file_extension: "jpg" }
       res = subject.download(args)
       expect(res).to_not include("crop")
     end
