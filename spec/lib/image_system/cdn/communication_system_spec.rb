@@ -7,56 +7,50 @@ describe ImageSystem::CDN::CommunicationSystem do
   subject { ImageSystem::CDN::CommunicationSystem }
 
   before(:all) do
-    VCR.use_cassette('image_system/cdn/communication_system_upload/before_all', :match_requests_on => [:method, :uri_ignoring_trailing_nonce]) do
-      file_args = { filename: 'rails.png',
-                      content_type: 'image/png',
-                      tempfile: File.new("#{Rails.root}/public/images/test_image.jpg")
-                    }
+    VCR.use_cassette('image_system/cdn/communication_system/before_all', match_requests_on: [:method, :uri_ignoring_trailing_nonce]) do
 
-      @file_path = ActionDispatch::Http::UploadedFile.new(file_args).path.to_s
       @uuid = "1"
+      initialize_api
 
-      @cdn ||= CDNConnect::APIClient.new( app_host: ImageSystem::CDN::ApiData::CDN_APP_HOST,
-                                          api_key: ImageSystem::CDN::ApiData::CDN_API_KEY)
-
-      res = @cdn.upload( source_file_path: @file_path,
-                         destination_file_name: "#{@uuid}.jpg",
-                         queue_processing: false,
-                         destination_path: '/')
+      @cdn.upload(source_file_path: uploaded_file(:jpg_args).path,
+                  destination_file_name: "#{@uuid}.jpg",
+                  queue_processing: false,
+                  destination_path: '/')
 
       @already_existing_uuid = 'rename_test_already_exists_exception'
-      @cdn.upload( source_file_path: @file_path,
-                   destination_file_name: "#{@already_existing_uuid}.jpg",
-                   queue_processing: false,
-                   destination_path: '/')
+
+      @cdn.upload(source_file_path: uploaded_file(:jpg_args).path,
+                  destination_file_name: "#{@already_existing_uuid}.jpg",
+                  queue_processing: false,
+                  destination_path: '/')
     end
   end
 
   after(:all) do
-    VCR.use_cassette('image_system/cdn/communication_system_upload/after_all', :match_requests_on => [:method, :uri_ignoring_trailing_nonce]) do
+    VCR.use_cassette('image_system/cdn/communication_system/after_all', match_requests_on: [:method, :uri_ignoring_trailing_nonce]) do
       @cdn.delete(uuid: @uuid)
       @cdn.delete(uuid: @already_existing_uuid)
     end
   end
 
   describe ".upload" do
-
     before(:all) do
+      @jpg_file = uploaded_file(:jpg_args)
       @uuid_to_upload = UUIDTools::UUID.random_create.to_s.gsub(/\-/, '')
     end
 
-    it "receives a file and uploads it to cdn", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
-      res = subject.upload( uuid: @uuid_to_upload, source_file_path: @file_path)
-      expect(res).to eq({result: true, width: 998, height: 1500})
+    it "returns an error message if file_type is nil" do
+      expect { subject.upload( uuid: @uuid_to_upload, source_file_path: @jpg_file.path) }.
+        to raise_error(ArgumentError, "File extension is not set")
     end
 
     it "returns an error message if uuid is nil" do
-      expect { subject.upload( uuid: nil, source_file_path: @file_path) }.
+      expect { subject.upload( uuid: nil, source_file_path: @jpg_file.path, file_extension: @jpg_file.content_type) }.
         to raise_error(ArgumentError, "uuid is not set")
     end
 
     it "returns an error message if source_file_path is not set" do
-      expect { subject.upload( uuid: @uuid_to_upload, source_file_path: nil) }.
+      expect { subject.upload( uuid: @uuid_to_upload, source_file_path: nil, file_extension: @jpg_file.content_type) }.
         to raise_error(ArgumentError, "source file(s) required")
     end
 
@@ -67,8 +61,31 @@ describe ImageSystem::CDN::CommunicationSystem do
     it "returns an error message if the upload fails from cdn" do
       CDNConnect::APIClient.any_instance.stub(:upload) { Response.new(:status => 503) }
 
-      expect { subject.upload( uuid: @uuid_to_upload, source_file_path: @file_path) }.
+      expect { subject.upload( uuid: @uuid_to_upload, source_file_path: @jpg_file.path, file_extension: @jpg_file.content_type) }.
         to raise_error(Exceptions::CdnResponseException, "http_response was nil")
+    end
+
+    it "receives a jpg file and uploads it to cdn", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
+      res = subject.upload(uuid: @uuid_to_upload, source_file_path: @jpg_file.path, file_extension: @jpg_file.content_type)
+      expect(res).to eq({result: true, width: 998, height: 1500})
+    end
+
+    it "receives a jpeg file and uploads it to cdn", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
+      file = uploaded_file(:jpeg_args)
+      res = subject.upload(uuid: @uuid_to_upload, source_file_path: file.path, file_extension: file.content_type)
+      expect(res).to eq({result: true, width: 400, height: 316})
+    end
+
+    it "receives a gif file and uploads it to cdn", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
+      file = uploaded_file(:gif_args)
+      res = subject.upload(uuid: @uuid_to_upload, source_file_path: file.path, file_extension: file.content_type)
+      expect(res).to eq({result: true, width: 330, height: 263})
+    end
+
+     it "receives a png file and uploads it to cdn", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
+      file = uploaded_file(:png_args)
+      res = subject.upload(uuid: @uuid_to_upload, source_file_path: file.path, file_extension: file.content_type)
+      expect(res).to eq({result: true, width: 50, height: 64})
     end
 
   end
@@ -224,7 +241,7 @@ describe ImageSystem::CDN::CommunicationSystem do
       expect(res).to eq(true)
 
       # Make sure the file does not disappear for other tests
-      @cdn.upload( source_file_path: @file_path,
+      @cdn.upload( source_file_path: uploaded_file(:jpg_args).path,
                    destination_file_name: "#{@already_existing_uuid}.jpg",
                    queue_processing: false,
                    destination_path: '/')
