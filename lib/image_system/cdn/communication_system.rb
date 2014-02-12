@@ -33,8 +33,11 @@ module ImageSystem
         new_uuid = options.delete(:new_uuid)
         rename_args_validation(uuid, new_uuid)
 
-        options[:path] = "/" + uuid + ".jpg"
-        options[:new_name] = new_uuid + ".jpg"
+        file_extension = options.delete(:file_extension)
+        raise ArgumentError.new("File extension is not set") if file_extension.blank?
+
+        options[:path] = "/" + uuid + ".#{file_extension}"
+        options[:new_name] = new_uuid + ".#{file_extension}"
         response = api_client.rename_object(options)
 
         error_handling(response.status)
@@ -44,7 +47,10 @@ module ImageSystem
         uuid = options.delete(:uuid)
         raise ArgumentError.new("uuid is not set") if uuid.blank?
 
-        response = api_client.delete_object(path: "/#{uuid}.jpg")
+        file_extension = options.delete(:file_extension)
+        raise ArgumentError.new("File extension is not set") if file_extension.blank?
+
+        response = api_client.delete_object(path: "/#{uuid}.#{file_extension}")
         error_handling(response.status)
       end
 
@@ -52,7 +58,10 @@ module ImageSystem
         uuid = options.delete(:uuid)
         raise ArgumentError.new("uuid is not set") if uuid.blank?
 
-        response = api_client.get_object(path: "/#{uuid}.jpg")
+        file_extension = options.delete(:file_extension)
+        raise ArgumentError.new("File extension is not set") if file_extension.blank?
+
+        response = api_client.get_object(path: "/#{uuid}.#{file_extension}")
         error_handling(response.status)
       end
 

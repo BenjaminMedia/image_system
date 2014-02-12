@@ -187,7 +187,6 @@ describe ImageSystem::CDN::CommunicationSystem do
   end
 
   describe ".rename" do
-
     before(:all) do
       VCR.use_cassette('image_system/cdn/communication_system_rename/before_all', :match_requests_on => [:method, :uri_ignoring_trailing_nonce]) do
         @old_uuid = "1"
@@ -197,51 +196,55 @@ describe ImageSystem::CDN::CommunicationSystem do
     end
 
     after(:each) do
-      VCR.use_cassette('image_system/cdn/communication_system_rename/after_all', :match_requests_on => [:method, :uri_ignoring_trailing_nonce]) do
+      VCR.use_cassette('image_system/cdn/communication_system_rename/after_each', :match_requests_on => [:method, :uri_ignoring_trailing_nonce]) do
         @cdn.rename_object(path: "/#{@new_uuid}.jpg", new_name: "#{@old_uuid}.jpg")
       end
     end
 
     it "returns true when renaming an object is successful", :vcr do
-      res = subject.rename(old_uuid: @old_uuid, new_uuid: @new_uuid)
+      res = subject.rename(old_uuid: @old_uuid, new_uuid: @new_uuid, file_extension: "jpg")
       expect(res).to eq(true)
     end
 
     it "returns an exception if an object is not found", :vcr do
-      expect { subject.rename( old_uuid: "2", new_uuid: @new_uuid) }.
+      expect { subject.rename( old_uuid: "2", new_uuid: @new_uuid, file_extension: "jpg") }.
         to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
     end
 
     it "returns an exception if there is an image with the same uuid as new uuid", :vcr do
-      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @already_existing_uuid) }.
+      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @already_existing_uuid, file_extension: "jpg") }.
         to raise_error(Exceptions::AlreadyExistsException, "There is an image with the same uuid as the new one")
     end
 
     it "returns an error if the old uuid is not provided" do
-      expect { subject.rename( new_uuid: @already_existing_uuid) }.to raise_error(ArgumentError,"old uuid is not set")
+      expect { subject.rename( new_uuid: @already_existing_uuid, file_extension: "jpg") }.to raise_error(ArgumentError,"old uuid is not set")
     end
 
     it "returns an error if the new uuid is not provided" do
-      expect { subject.rename( old_uuid: @old_uuid ) }.to raise_error(ArgumentError,"new uuid is not set")
+      expect { subject.rename( old_uuid: @old_uuid, file_extension: "jpg" ) }.to raise_error(ArgumentError,"new uuid is not set")
     end
 
     it "returns an error if the old uuid is the same as the new" do
-      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @old_uuid) }.
+      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @old_uuid, file_extension: "jpg") }.
         to raise_error(ArgumentError,"old uuid is the same as the new")
+    end
+
+    it "returns an error if the old uuid is the same as the new" do
+      expect { subject.rename(old_uuid: @old_uuid, new_uuid: @new_uuid) }.
+        to raise_error(ArgumentError,"File extension is not set")
     end
 
     it "returns an error if the renaming fails" do
       CDNConnect::APIClient.any_instance.stub(:rename_object) { Response.new }
-      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @new_uuid) }.
+      expect { subject.rename( old_uuid: @old_uuid, new_uuid: @new_uuid, file_extension: "jpg") }.
         to raise_error(Exceptions::CdnUnknownException, "cdn communication system failed")
     end
-
   end
 
   describe ".delete" do
 
     it "deletes the picture and returns true if the given uuid exists", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
-      res = subject.delete(uuid: @already_existing_uuid)
+      res = subject.delete(uuid: @already_existing_uuid, file_extension: "jpg")
       expect(res).to eq(true)
 
       # Make sure the file does not disappear for other tests
@@ -252,17 +255,22 @@ describe ImageSystem::CDN::CommunicationSystem do
     end
 
     it "does not delete if it does exist and returns an error", :vcr do
-      expect { subject.delete(uuid: "non_existing_uuid") }.
+      expect { subject.delete(uuid: "non_existing_uuid", file_extension: "jpg") }.
         to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
     end
 
+    it "does not delete if it does exist and returns an error", :vcr do
+      expect { subject.delete(uuid: @already_existing_uuid) }.
+        to raise_error(ArgumentError, "File extension is not set")
+    end
+
     it "does not delete if no uuid is given and returns an error" do
-      expect { subject.delete() }.to raise_error(ArgumentError,"uuid is not set")
+      expect { subject.delete() }.to raise_error(ArgumentError, "uuid is not set")
     end
 
     it "returns an error if the deleting operation fails" do
       CDNConnect::APIClient.any_instance.stub(:delete_object) { Response.new }
-      expect { subject.delete(uuid: "non_existing_uuid") }.
+      expect { subject.delete(uuid: "non_existing_uuid", file_extension: "jpg") }.
         to raise_error(Exceptions::CdnUnknownException, "cdn communication system failed")
     end
 
@@ -271,16 +279,20 @@ describe ImageSystem::CDN::CommunicationSystem do
   describe ".info" do
 
     it "returns true if the image exists for that uuid", :vcr do
-      res = subject.info(uuid: @uuid)
+      res = subject.info(uuid: @uuid, file_extension: "jpg")
       expect(res).to eq(true)
     end
 
     it "returns an error if no uuid is given" do
-      expect { res = subject.info() }.to raise_error(ArgumentError,"uuid is not set")
+      expect { res = subject.info() }.to raise_error(ArgumentError, "uuid is not set")
+    end
+
+    it "returns an error if no uuid is given" do
+      expect { res = subject.info(uuid: @uuid) }.to raise_error(ArgumentError, "File extension is not set")
     end
 
     it "returns an error if the image for that uuid does not exist", :vcr do
-      expect { res = subject.info(uuid: "non_existing_uuid") }.
+      expect { res = subject.info(uuid: "non_existing_uuid", file_extension: "jpg") }.
         to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
     end
 
