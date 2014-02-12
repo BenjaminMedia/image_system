@@ -2,9 +2,9 @@ require 'spec_helper'
 
 describe ImageSystem::Concerns::Image do
 
-  let(:new_photo) { build(:photo, uuid: create_uuid, source_file_path: test_image_path, file_extension: "jpg") }
-  let(:new_photo_to_upload) { build(:photo, source_file_path: test_image_path, file_extension: "jpg") }
-  let(:photo) { create(:photo, source_file_path: test_image_path, file_extension: "jpg") }
+  let(:new_photo) { build(:photo, uuid: create_uuid, source_file: uploaded_file(:jpg_args), file_extension: "jpg") }
+  let(:new_photo_to_upload) { build(:photo, source_file: uploaded_file(:jpg_args), file_extension: "jpg") }
+  let(:photo) { create(:photo, source_file: uploaded_file(:jpg_args), file_extension: "jpg") }
 
   describe "#validations" do
 
@@ -17,13 +17,13 @@ describe ImageSystem::Concerns::Image do
       expect(photo).to_not be_valid
     end
 
-    it "does not validate an image without the presence of source_file_path" do
-      new_photo.source_file_path = nil
+    it "does not validate an image without the presence of source_file" do
+      new_photo.source_file = nil
       expect(new_photo).to_not be_valid
     end
 
-    it "Validate an image without the presence of source_file_path if its not a new record" do
-      photo.source_file_path = nil
+    it "Validate an image without the presence of source_file if its not a new record" do
+      photo.source_file = nil
       photo.save
       expect(photo).to be_valid
     end
@@ -38,13 +38,13 @@ describe ImageSystem::Concerns::Image do
       expect(photo).to_not be_valid
     end
 
-    it "validates an image if uuid and source_file_path is present" do
-      expect(new_photo).to be_valid
-    end
-
     it "does not validate an image without the presence of file_extension" do
       photo.file_extension = nil
       expect(photo).to_not be_valid
+    end
+
+    it "validates an image if uuid, source_file and file_extension are present" do
+      expect(new_photo).to be_valid
     end
   end
 
@@ -85,7 +85,7 @@ describe ImageSystem::Concerns::Image do
 
       it "saves an image that is new and has been uploaded successfully" do
         new_photo_to_upload.stub(:uuid).and_return("1")
-        upload_args = { uuid: new_photo_to_upload.uuid, source_file_path: new_photo_to_upload.source_file_path, file_extension: "jpg"}
+        upload_args = { uuid: new_photo_to_upload.uuid, source_file_path: new_photo_to_upload.source_file.path, file_extension: "jpg"}
         ImageSystem::CDN::CommunicationSystem.should_receive(:upload).with(upload_args).and_return({result: true , height: 100, width: 100})
         expect(new_photo_to_upload.save).to eq(true)
       end

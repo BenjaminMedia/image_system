@@ -5,12 +5,12 @@ module ImageSystem
     module Image
       extend ActiveSupport::Concern
 
-      attr_accessor :source_file_path
+      attr_accessor :source_file
 
       included do
         # Validations
         validates :uuid, presence: true
-        validates :source_file_path, presence: true, on: :create
+        validates :source_file, presence: true, on: :create
         validates :width, presence: true
         validates :height, presence: true
         validates :file_extension, presence: true
@@ -58,7 +58,7 @@ module ImageSystem
       def upload_to_system
         rescue_from_cdn_failure("upload") do
           if self.new_record? || self.changed.include?("uuid")
-            res = CDN::CommunicationSystem.upload(uuid: self.uuid, source_file_path: self.source_file_path, file_extension: self.file_extension)
+            res = CDN::CommunicationSystem.upload(uuid: self.uuid, source_file_path: self.source_file.try(:path), file_extension: self.file_extension)
             self.width = res[:width]
             self.height = res[:height]
           end
