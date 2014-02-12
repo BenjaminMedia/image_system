@@ -13,6 +13,7 @@ module ImageSystem
         validates :source_file_path, presence: true, on: :create
         validates :width, presence: true
         validates :height, presence: true
+        validates :file_extension, presence: true
 
         # Callbacks
         before_validation :set_uuid, on: :create
@@ -21,19 +22,19 @@ module ImageSystem
 
       def destroy
         response = rescue_from_cdn_failure("destroy") do
-          self.new_record? || CDN::CommunicationSystem.delete(uuid: self.uuid)
+          self.new_record? || CDN::CommunicationSystem.delete(uuid: self.uuid, file_extension: self.file_extension)
         end
         super if response
       end
 
       def url
         begin
-           CDN::CommunicationSystem.info(uuid: self.uuid)
+           CDN::CommunicationSystem.info(uuid: self.uuid, file_extension: self.file_extension)
         rescue Exceptions::NotFoundException
            return nil
         end
 
-        self.new_record? ? nil : CDN::CommunicationSystem.download(uuid: self.uuid, height: self.height, width: self.width)
+        self.new_record? ? nil : CDN::CommunicationSystem.download(uuid: self.uuid, file_extension: self.file_extension)
       end
 
     private
@@ -57,7 +58,7 @@ module ImageSystem
       def upload_to_system
         rescue_from_cdn_failure("upload") do
           if self.new_record? || self.changed.include?("uuid")
-            res = CDN::CommunicationSystem.upload(uuid: self.uuid, source_file_path: self.source_file_path, queue_processing: false)
+            res = CDN::CommunicationSystem.upload(uuid: self.uuid, source_file_path: self.source_file_path, file_extension: self.file_extension)
             self.width = res[:width]
             self.height = res[:height]
           end
