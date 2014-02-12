@@ -4,6 +4,7 @@ class AddCdnFieldsTo<%= class_name.camelize.pluralize %> < ActiveRecord::Migrati
       t.string  :uuid
       t.integer :width  # width in px
       t.integer :height # height in px
+      t.string :file_extension
     end
 
     add_index :<%= class_name.pluralize.downcase %>, :uuid, unique: true
