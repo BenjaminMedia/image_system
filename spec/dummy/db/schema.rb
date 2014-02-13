@@ -17,6 +17,7 @@ ActiveRecord::Schema.define(version: 20140123094205) do
     t.string   "uuid"
     t.integer  "width"
     t.integer  "height"
+    t.string   "file_extension"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

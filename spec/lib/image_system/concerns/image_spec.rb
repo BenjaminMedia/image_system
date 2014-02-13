@@ -2,9 +2,9 @@ require 'spec_helper'
 
 describe ImageSystem::Concerns::Image do
 
-  let(:new_photo) { build(:photo, uuid: create_uuid, source_file_path: test_image_path) }
-  let(:new_photo_to_upload) { build(:photo, source_file_path: test_image_path) }
-  let(:photo) { create(:photo, uuid: create_uuid, source_file_path: test_image_path) }
+  let(:new_photo) { build(:photo, uuid: create_uuid, source_file_path: test_image_path, file_extension: "jpg") }
+  let(:new_photo_to_upload) { build(:photo, source_file_path: test_image_path, file_extension: "jpg") }
+  let(:photo) { create(:photo, source_file_path: test_image_path, file_extension: "jpg") }
 
   describe "#validations" do
 
@@ -41,6 +41,11 @@ describe ImageSystem::Concerns::Image do
     it "validates an image if uuid and source_file_path is present" do
       expect(new_photo).to be_valid
     end
+
+    it "does not validate an image without the presence of file_extension" do
+      photo.file_extension = nil
+      expect(photo).to_not be_valid
+    end
   end
 
   describe "before_validations" do
@@ -67,21 +72,21 @@ describe ImageSystem::Concerns::Image do
     describe "upload_to_system" do
 
       it "does not save an image that is new and has not received a response from cdn" do
-        ImageSystem::CDN::CommunicationSystem.stub(:upload).and_raise(Exceptions::CdnResponseException.new("http_response was nil"))
-        ImageSystem::CDN::CommunicationSystem.should_receive(:upload)
+        ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_raise(Exceptions::CdnResponseException.new("http_response was nil"))
         expect(new_photo_to_upload.save).to eq(false)
         expect(new_photo_to_upload.errors.full_messages).to include("Image The photo could not be uploaded")
       end
 
       it "does not save an image that is new and has not been uploaded successfully for unknown reasons" do
-        ImageSystem::CDN::CommunicationSystem.stub(:upload).and_raise(Exceptions::CdnUnknownException.new("cdn communication system failed"))
-        ImageSystem::CDN::CommunicationSystem.should_receive(:upload)
+        ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_raise(Exceptions::CdnUnknownException.new("cdn communication system failed"))
         expect(new_photo_to_upload.save).to eq(false)
         expect(new_photo_to_upload.errors.full_messages).to include("Image The photo could not be uploaded")
       end
 
       it "saves an image that is new and has been uploaded successfully" do
-        ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_return({result: true , height: 100, width: 100})
+        new_photo_to_upload.stub(:uuid).and_return("1")
+        upload_args = { uuid: new_photo_to_upload.uuid, source_file_path: new_photo_to_upload.source_file_path, file_extension: "jpg"}
+        ImageSystem::CDN::CommunicationSystem.should_receive(:upload).with(upload_args).and_return({result: true , height: 100, width: 100})
         expect(new_photo_to_upload.save).to eq(true)
       end
 
@@ -113,7 +118,6 @@ describe ImageSystem::Concerns::Image do
     end
   end
 
-
   describe "#destroy" do
 
     before(:each) do
@@ -122,7 +126,7 @@ describe ImageSystem::Concerns::Image do
 
     it  "deletes an image if it is deleted successfully from the server" do
       ImageSystem::CDN::CommunicationSystem.stub(:delete) { true }
-      ImageSystem::CDN::CommunicationSystem.should_receive(:delete)
+      ImageSystem::CDN::CommunicationSystem.should_receive(:delete).with({ uuid: photo.uuid, file_extension: "jpg" })
       expect(photo.destroy).to eq(photo)
     end
 
@@ -151,8 +155,8 @@ describe ImageSystem::Concerns::Image do
     end
 
     it "returns an url to the image with the given uuid" do
-      ImageSystem::CDN::CommunicationSystem.stub(:info)
-      ImageSystem::CDN::CommunicationSystem.should_receive(:download)
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" })
+      ImageSystem::CDN::CommunicationSystem.should_receive(:download).with({ uuid: photo.uuid, file_extension: "jpg" })
       photo.url
     end
 
@@ -163,10 +167,9 @@ describe ImageSystem::Concerns::Image do
     end
 
     it "returns nil if the object does not exist" do
-      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid }).and_raise(Exceptions::NotFoundException.new("Does not exist any image with that uuid"))
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" }).and_raise(Exceptions::NotFoundException.new("Does not exist any image with that uuid"))
       ImageSystem::CDN::CommunicationSystem.should_not_receive(:download)
       expect(photo.url).to be_nil
     end
   end
-
 end

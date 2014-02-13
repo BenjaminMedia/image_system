@@ -19,6 +19,11 @@ describe Cdn::Generators::ImageGenerator do
     it "runs generator and correct files are created" do
       assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /def change/
       assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /change_table\(:pictures\)/
+      assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /t.string  :uuid/
+      assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /t.integer :width/
+      assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /t.integer :height/
+      assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /t.string :file_extension/
+      assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /add_index :pictures, :uuid, unique: true/
     end
   end
 
@@ -30,7 +35,12 @@ describe Cdn::Generators::ImageGenerator do
 
     it "runs generator and correct files are created" do
       assert_migration "db/migrate/create_pictures_with_cdn_fields.rb", /def change/
-      assert_migration "db/migrate/create_pictures_with_cdn_fields.rb", /create_table\(:pictures\)/
+      assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /change_table\(:pictures\)/
+      assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /t.string  :uuid/
+      assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /t.integer :width/
+      assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /t.integer :height/
+      assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /t.string :file_extension/
+      assert_migration "db/migrate/add_cdn_fields_to_pictures.rb", /add_index :pictures, :uuid, unique: true/
     end
   end
 end
