@@ -5,6 +5,11 @@ describe ImageSystem::Concerns::Image do
   let(:new_photo) { build(:photo, uuid: create_uuid, source_file: uploaded_file(:jpg_args), file_extension: "jpg") }
   let(:new_photo_to_upload) { build(:photo, source_file: uploaded_file(:jpg_args), file_extension: "jpg") }
   let(:photo) { create(:photo, source_file: uploaded_file(:jpg_args), file_extension: "jpg") }
+  let(:bmp_photo) { build(:photo, source_file: uploaded_file(:bmp_args)) }
+  let(:jpg_photo) { build(:photo, source_file: uploaded_file(:jpg_args)) }
+  let(:jpeg_photo) { build(:photo, source_file: uploaded_file(:jpeg_args)) }
+  let(:png_photo) { build(:photo, source_file: uploaded_file(:png_args)) }
+  let(:gif_photo) { build(:photo, source_file: uploaded_file(:gif_args)) }
 
   describe "#validations" do
 
@@ -114,6 +119,39 @@ describe ImageSystem::Concerns::Image do
         new_photo_to_upload.save
         expect(new_photo_to_upload.height).to eq(100)
         expect(new_photo_to_upload.width).to eq(200)
+      end
+    end
+
+    describe "check_source_file_content_type" do
+
+      before(:each) do
+        ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
+      end
+
+      it "does not validate an object which the content_type is not allowed" do
+        expect(bmp_photo).to_not be_valid
+      end
+
+      it "validates jpg files" do
+        expect(jpg_photo).to be_valid
+      end
+
+      it "validates jpeg files" do
+        expect(jpeg_photo).to be_valid
+      end
+
+      it "validates png files" do
+        expect(png_photo).to be_valid
+      end
+
+      it "validates gif files" do
+        expect(gif_photo).to be_valid
+      end
+
+      it "sets the file_extension when validating the source_file_content_type" do
+        expect(gif_photo.file_extension).to be_nil
+        expect(gif_photo).to be_valid
+        expect(gif_photo.file_extension).to_not be_nil
       end
     end
   end

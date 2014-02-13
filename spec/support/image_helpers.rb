@@ -28,6 +28,13 @@ module ImageHelpers
                 }
   end
 
+  def bmp_args
+    file_args = { filename: 'bmp_test_image.png',
+                  type: 'image/bmp',
+                  tempfile: File.new("#{Rails.root}/public/images/bmp_test_image.bmp")
+                }
+  end
+
   def uploaded_file(args)
     ActionDispatch::Http::UploadedFile.new(send(args))
   end
