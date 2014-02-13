@@ -42,14 +42,6 @@ module ImageSystem
         []
       end
 
-      def contente_type_white_list
-        [ 'image/jpg',
-          'image/jpeg',
-          'image/gif',
-          'image/png'
-        ] << extension_to_content_type_white_list
-      end
-
     private
 
       def rescue_from_cdn_failure(method, &block)
@@ -94,6 +86,14 @@ module ImageSystem
         else
           errors.add(:source_file, "File type is not allowed #{type}")
         end
+      end
+
+      def contente_type_white_list
+        [ 'image/jpg',
+          'image/jpeg',
+          'image/gif',
+          'image/png'
+        ] + extension_to_content_type_white_list
       end
     end
   end

@@ -153,6 +153,11 @@ describe ImageSystem::Concerns::Image do
         expect(gif_photo).to be_valid
         expect(gif_photo.file_extension).to_not be_nil
       end
+
+      it "white list can be extended" do
+        Photo.any_instance.stub(:extension_to_content_type_white_list).and_return(%w(image/bmp))
+        expect(bmp_photo).to be_valid
+      end
     end
   end
 
@@ -209,5 +214,13 @@ describe ImageSystem::Concerns::Image do
       ImageSystem::CDN::CommunicationSystem.should_not_receive(:download)
       expect(photo.url).to be_nil
     end
+  end
+
+  describe "#extension_to_content_type_white_list" do
+
+    it "returns an empty array if not override" do
+      expect(new_photo.extension_to_content_type_white_list).to be_empty
+    end
+
   end
 end
