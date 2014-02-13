@@ -2,7 +2,7 @@ require 'spec_helper'
 require "generators/aspect/aspect_generator"
 require "generator_spec"
 
-describe Generators::AspectGenerator do
+describe AspectGenerator do
   destination File.join(Rails.root, "/tmp")
 
   before(:all) do

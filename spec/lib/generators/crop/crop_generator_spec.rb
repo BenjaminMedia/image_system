@@ -2,7 +2,7 @@ require 'spec_helper'
 require "generators/crop/crop_generator"
 require "generator_spec"
 
-describe Generators::CropGenerator do
+describe CropGenerator do
   destination File.join(Rails.root, "/tmp")
 
   before(:all) do
