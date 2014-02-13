@@ -16,6 +16,7 @@ module ImageSystem
         validates :file_extension, presence: true
 
         # Callbacks
+        before_validation :check_source_file_content_type, on: :create, if: "source_file.present?"
         before_validation :set_uuid, on: :create
         before_validation :upload_to_system
       end
@@ -35,6 +36,18 @@ module ImageSystem
         end
 
         self.new_record? ? nil : CDN::CommunicationSystem.download(uuid: self.uuid, file_extension: self.file_extension)
+      end
+
+      def extension_to_content_type_white_list
+        []
+      end
+
+      def contente_type_white_list
+        [ 'image/jpg',
+          'image/jpeg',
+          'image/gif',
+          'image/png'
+        ] << extension_to_content_type_white_list
       end
 
     private
@@ -73,6 +86,15 @@ module ImageSystem
         false
       end
 
+      def check_source_file_content_type
+        content_type = self.source_file.content_type
+        type = content_type.split('/').last
+        if contente_type_white_list.include?(content_type)
+          self.file_extension = type
+        else
+          errors.add(:source_file, "File type is not allowed #{type}")
+        end
+      end
     end
   end
 end
