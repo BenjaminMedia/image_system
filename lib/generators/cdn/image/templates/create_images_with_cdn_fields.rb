@@ -4,6 +4,7 @@ class Create<%= class_name.camelize.pluralize %>WithCdnFields < ActiveRecord::Mi
       t.string  :uuid
       t.integer :width  # width in px
       t.integer :height # height in px
+      t.string :file_extension
 
       t.timestamps
     end

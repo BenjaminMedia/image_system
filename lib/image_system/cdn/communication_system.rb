@@ -7,12 +7,8 @@ module ImageSystem
       CDN_DEFAULT_JPEG_QUALITY = 95
 
       def self.upload(options = {})
-        uuid = options.delete(:uuid)
-        raise ArgumentError.new("uuid is not set") if uuid.blank?
-
-        options = set_upload_options(uuid, options)
+        options = set_upload_options(options)
         response = api_client.upload(options)
-
         upload_response(response)
       end
 
@@ -20,13 +16,16 @@ module ImageSystem
         uuid = options.delete(:uuid)
         raise ArgumentError.new("uuid is not set") if uuid.blank?
 
+        file_extension = options.delete(:file_extension)
+        raise ArgumentError.new("File extension is not set") if file_extension.blank?
+
         crop = options.delete(:crop)
         options = options.merge(crop_options(crop))
         options = default_download_options.merge(options)
         params = set_aspect_options(options).delete_if { |k, v| v.nil? }.to_param
 
         # there is default params so its never gonna be empty
-        url_to_image(uuid, params)
+        url_to_image(uuid, file_extension, params)
       end
 
       def self.rename(options = {})
@@ -34,8 +33,11 @@ module ImageSystem
         new_uuid = options.delete(:new_uuid)
         rename_args_validation(uuid, new_uuid)
 
-        options[:path] = "/" + uuid + ".jpg"
-        options[:new_name] = new_uuid + ".jpg"
+        file_extension = options.delete(:file_extension)
+        raise ArgumentError.new("File extension is not set") if file_extension.blank?
+
+        options[:path] = "/" + uuid + ".#{file_extension}"
+        options[:new_name] = new_uuid + ".#{file_extension}"
         response = api_client.rename_object(options)
 
         error_handling(response.status)
@@ -45,7 +47,10 @@ module ImageSystem
         uuid = options.delete(:uuid)
         raise ArgumentError.new("uuid is not set") if uuid.blank?
 
-        response = api_client.delete_object(path: "/#{uuid}.jpg")
+        file_extension = options.delete(:file_extension)
+        raise ArgumentError.new("File extension is not set") if file_extension.blank?
+
+        response = api_client.delete_object(path: "/#{uuid}.#{file_extension}")
         error_handling(response.status)
       end
 
@@ -53,7 +58,10 @@ module ImageSystem
         uuid = options.delete(:uuid)
         raise ArgumentError.new("uuid is not set") if uuid.blank?
 
-        response = api_client.get_object(path: "/#{uuid}.jpg")
+        file_extension = options.delete(:file_extension)
+        raise ArgumentError.new("File extension is not set") if file_extension.blank?
+
+        response = api_client.get_object(path: "/#{uuid}.#{file_extension}")
         error_handling(response.status)
       end
 
@@ -71,8 +79,14 @@ module ImageSystem
         { quality: CDN_DEFAULT_JPEG_QUALITY, aspect: :original }
       end
 
-      def self.set_upload_options(uuid, options)
-        options[:destination_file_name] = "#{uuid}.jpg"
+      def self.set_upload_options(options)
+
+        uuid = options.delete(:uuid)
+        raise ArgumentError.new("uuid is not set") if uuid.blank?
+        file_extension = options.delete(:file_extension)
+        raise ArgumentError.new("File extension is not set") if file_extension.blank?
+
+        options[:destination_file_name] = "#{uuid}.#{file_extension}"
         default_upload_options.merge(options)
       end
 
@@ -128,8 +142,8 @@ module ImageSystem
         end
       end
 
-      def self.url_to_image(uuid, params)
-        "http://#{CDN::ApiData::CDN_APP_HOST}/#{uuid}.jpg" + "?#{params}"
+      def self.url_to_image(uuid, file_extension, params)
+        "http://#{CDN::ApiData::CDN_APP_HOST}/#{uuid}.#{file_extension}" + "?#{params}"
       end
 
     end
