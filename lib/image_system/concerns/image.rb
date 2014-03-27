@@ -8,6 +8,11 @@ module ImageSystem
       attr_accessor :source_file
 
       included do
+
+        # Associations
+        has_many "#{name.underscore}_crops".to_sym, dependent: :destroy
+        has_many "#{name.underscore}_aspects".to_sym, through: "#{name.underscore}_crops".to_sym
+
         # Validations
         validates :uuid, presence: true
         validates :source_file, presence: true, on: :create
@@ -28,14 +33,21 @@ module ImageSystem
         super if response
       end
 
-      def url
+      def url(options = {})
+        options = set_url_options(options)
+        options = set_crop_options_for_url(options)
+
         begin
            CDN::CommunicationSystem.info(uuid: self.uuid, file_extension: self.file_extension)
         rescue Exceptions::NotFoundException
            return nil
         end
 
-        self.new_record? ? nil : CDN::CommunicationSystem.download(uuid: self.uuid, file_extension: self.file_extension)
+        if self.new_record?
+          nil
+        else
+          CDN::CommunicationSystem.download(options)
+        end
       end
 
       def extension_to_content_type_white_list
@@ -43,6 +55,22 @@ module ImageSystem
       end
 
     private
+
+      def set_url_options(options = {})
+        defaults = { width: width, height: height, aspect: :original }
+        options = defaults.merge(options)
+        options.merge!({ uuid: self.uuid, file_extension: self.file_extension })
+      end
+
+      def set_crop_options_for_url(options = {})
+        klass_name = self.class.name.underscore
+        # there is only one crop for each aspect
+        # see validations on the crops models
+        aspect = send("#{klass_name}_aspects".to_sym).where(name: options[:aspect]).first
+        crop = aspect.try("#{klass_name}_crops".to_sym).try(:first)
+        crop_args = crop ? { crop: { x1: crop.x1, y1: crop.y1, x2: crop.x2, y2: crop.y2 } } : {}
+        options.merge!(crop_args)
+      end
 
       def rescue_from_cdn_failure(method, &block)
         begin
