@@ -22,6 +22,11 @@ describe ImageSystem::Concerns::Image do
       expect(photo).to_not be_valid
     end
 
+    it "does validate an image without the presence of uuid if it's a new record" do
+      new_photo.uuid = nil
+      expect(new_photo).to be_valid
+    end
+
     it "does not validate an image without the presence of source_file" do
       new_photo.source_file = nil
       expect(new_photo).to_not be_valid
@@ -38,9 +43,19 @@ describe ImageSystem::Concerns::Image do
       expect(photo).to_not be_valid
     end
 
+    it "does validate an image without the presence of width if it's a new record" do
+      new_photo.width = nil
+      expect(new_photo).to be_valid
+    end
+
     it "does not validate an image without the presence of height" do
       photo.height = nil
       expect(photo).to_not be_valid
+    end
+
+    it "does validate an image without the presence of height if it's a new record" do
+      new_photo.height = nil
+      expect(new_photo).to be_valid
     end
 
     it "does not validate an image without the presence of file_extension" do
@@ -100,15 +115,6 @@ describe ImageSystem::Concerns::Image do
         expect(photo).to_not be_a_new_record
 
         ImageSystem::CDN::CommunicationSystem.should_not_receive(:upload)
-        expect(photo.save).to eq(true)
-      end
-
-      it "uploads the image if its not a new record but has a new uuid" do
-        ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
-        expect(photo).to_not be_a_new_record
-
-        photo.uuid = create_uuid
-        ImageSystem::CDN::CommunicationSystem.should_receive(:upload)
         expect(photo.save).to eq(true)
       end
 
