@@ -146,6 +146,11 @@ describe ImageSystem::CDN::CommunicationSystem do
       expect(res).to include("mode=max")
     end
 
+    it "returns an image with the original aspect" do
+      res = subject.download(uuid: @uuid, file_extension: "jpg", aspect: "original")
+      expect(res).to include("mode=max")
+    end
+
      it "returns an image with another aspect if not the original one" do
       res = subject.download(uuid: @uuid, file_extension: "jpg", aspect: :square)
       expect(res).to include("mode=crop")

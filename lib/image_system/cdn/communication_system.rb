@@ -92,7 +92,7 @@ module ImageSystem
 
       def self.set_aspect_options(options = default_download_options)
         aspect = options.delete(:aspect)
-        options[:mode] = aspect == :original ?  "max" : "crop"
+        options[:mode] = aspect.to_sym == :original ?  "max" : "crop"
         options
       end
 
