@@ -14,18 +14,19 @@ module ImageSystem
         has_many self.aspect_association_name, through: self.crop_association_name
 
         # Attributes
-        attr_readonly :uuid
+        attr_readonly :uuid, :width, :height, :file_extension
 
         # Validations
+        validates :source_file, presence: true, on: :create
+        validate :check_source_file_content_type, on: :create, if: -> { source_file.present? }
         validates :uuid, presence: true, on: :update
         validates :width, presence: true, on: :update
         validates :height, presence: true, on: :update
-        validates :source_file, presence: true, on: :create
-        validates :file_extension, presence: true
+        validates :file_extension, presence: true, on: :update
 
         # Callbacks
-        before_validation :check_source_file_content_type, on: :create, if: -> { source_file.present? }
         before_create :set_uuid
+        before_create :set_file_extension, if: -> { source_file.present? }
         before_create :upload_to_system
       end
 
@@ -114,12 +115,15 @@ module ImageSystem
 
       def check_source_file_content_type
         content_type = self.source_file.content_type
-        type = content_type.split('/').last
-        if contente_type_white_list.include?(content_type)
-          self.file_extension = type
-        else
-          errors.add(:source_file, "File type is not allowed #{type}")
-        end
+        errors.add(:source_file, "File type is not allowed #{get_image_type}") unless contente_type_white_list.include?(content_type)
+      end
+
+      def set_file_extension
+        self.file_extension = get_image_type
+      end
+
+      def get_image_type
+        self.source_file.content_type.split('/').last
       end
 
       def contente_type_white_list

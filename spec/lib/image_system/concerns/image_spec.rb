@@ -11,20 +11,6 @@ describe ImageSystem::Concerns::Image do
   let(:png_photo) { build(:photo, source_file: uploaded_file(:png_args)) }
   let(:gif_photo) { build(:photo, source_file: uploaded_file(:gif_args)) }
 
-  describe "#Attributes" do
-
-    before(:each) do
-      ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
-    end
-
-    it "does not update uuid if photo is persisted" do
-      photo.uuid = 1
-      photo.save
-      photo.reload
-      expect(photo.uuid).to_not eq(1)
-    end
-  end
-
   describe "#validations" do
 
     before(:each) do
@@ -80,11 +66,42 @@ describe ImageSystem::Concerns::Image do
     it "validates an image if uuid, source_file and file_extension are present" do
       expect(new_photo).to be_valid
     end
+
+    describe "check_source_file_content_type" do
+
+      before(:each) do
+        ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
+      end
+
+      it "does not validate an object which the content_type is not allowed" do
+        expect(bmp_photo).to_not be_valid
+      end
+
+      it "validates jpg files" do
+        expect(jpg_photo).to be_valid
+      end
+
+      it "validates jpeg files" do
+        expect(jpeg_photo).to be_valid
+      end
+
+      it "validates png files" do
+        expect(png_photo).to be_valid
+      end
+
+      it "validates gif files" do
+        expect(gif_photo).to be_valid
+      end
+
+      it "white list can be extended" do
+        Photo.any_instance.stub(:extension_to_content_type_white_list).and_return(%w(image/bmp))
+        expect(bmp_photo).to be_valid
+      end
+    end
   end
 
-  describe "before_validations" do
-
-    describe "set_uuid" do
+  describe "before_create" do
+    describe "#set_uuid" do
 
       before(:each) do
         ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
@@ -103,7 +120,7 @@ describe ImageSystem::Concerns::Image do
       end
     end
 
-    describe "upload_to_system" do
+    describe "#upload_to_system" do
 
       it "does not save an image that is new and has not received a response from cdn" do
         ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_raise(Exceptions::CdnResponseException.new("http_response was nil"))
@@ -142,41 +159,16 @@ describe ImageSystem::Concerns::Image do
       end
     end
 
-    describe "check_source_file_content_type" do
+    describe "#set_file_extension" do
 
       before(:each) do
         ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
       end
 
-      it "does not validate an object which the content_type is not allowed" do
-        expect(bmp_photo).to_not be_valid
-      end
-
-      it "validates jpg files" do
-        expect(jpg_photo).to be_valid
-      end
-
-      it "validates jpeg files" do
-        expect(jpeg_photo).to be_valid
-      end
-
-      it "validates png files" do
-        expect(png_photo).to be_valid
-      end
-
-      it "validates gif files" do
-        expect(gif_photo).to be_valid
-      end
-
-      it "sets the file_extension when validating the source_file_content_type" do
+      it "sets the file_extension " do
         expect(gif_photo.file_extension).to be_nil
-        expect(gif_photo).to be_valid
+        gif_photo.save
         expect(gif_photo.file_extension).to_not be_nil
-      end
-
-      it "white list can be extended" do
-        Photo.any_instance.stub(:extension_to_content_type_white_list).and_return(%w(image/bmp))
-        expect(bmp_photo).to be_valid
       end
     end
   end
