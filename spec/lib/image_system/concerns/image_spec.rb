@@ -11,6 +11,20 @@ describe ImageSystem::Concerns::Image do
   let(:png_photo) { build(:photo, source_file: uploaded_file(:png_args)) }
   let(:gif_photo) { build(:photo, source_file: uploaded_file(:gif_args)) }
 
+  describe "#Attributes" do
+
+    before(:each) do
+      ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
+    end
+
+    it "does not update uuid if photo is persisted" do
+      photo.uuid = 1
+      photo.save
+      photo.reload
+      expect(photo.uuid).to_not eq(1)
+    end
+  end
+
   describe "#validations" do
 
     before(:each) do

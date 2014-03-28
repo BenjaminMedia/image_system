@@ -9,11 +9,12 @@ module ImageSystem
 
       included do
 
-        attr_readonly :uuid
-
         # Associations
         has_many self.crop_association_name, dependent: :destroy
         has_many self.aspect_association_name, through: self.crop_association_name
+
+        # Attributes
+        attr_readonly :uuid
 
         # Validations
         validates :uuid, presence: true, on: :update
