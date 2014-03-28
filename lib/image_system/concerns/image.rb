@@ -13,17 +13,21 @@ module ImageSystem
         has_many self.crop_association_name, dependent: :destroy
         has_many self.aspect_association_name, through: self.crop_association_name
 
+        # Attributes
+        attr_readonly :uuid, :width, :height, :file_extension
+
         # Validations
-        validates :uuid, presence: true
         validates :source_file, presence: true, on: :create
-        validates :width, presence: true
-        validates :height, presence: true
-        validates :file_extension, presence: true
+        validate :check_source_file_content_type, on: :create, if: -> { source_file.present? }
+        validates :uuid, presence: true, on: :update
+        validates :width, presence: true, on: :update
+        validates :height, presence: true, on: :update
+        validates :file_extension, presence: true, on: :update
 
         # Callbacks
-        before_validation :check_source_file_content_type, on: :create, if: "source_file.present?"
-        before_validation :set_uuid, on: :create
-        before_validation :upload_to_system
+        before_create :set_uuid
+        before_create :set_file_extension, if: -> { source_file.present? }
+        before_create :upload_to_system
       end
 
       module ClassMethods
@@ -68,7 +72,6 @@ module ImageSystem
       end
 
       def set_crop_options_for_url(options = {})
-
         # there is only one crop for each aspect
         # see validations on the crops models
         aspect = send(self.class.aspect_association_name).where(name: options[:aspect]).first
@@ -95,16 +98,15 @@ module ImageSystem
 
       def upload_to_system
         rescue_from_cdn_failure("upload") do
-          if self.new_record? || self.changed.include?("uuid")
-            res = CDN::CommunicationSystem.upload(uuid: self.uuid, source_file_path: self.source_file.try(:path), file_extension: self.file_extension)
-            self.width = res[:width]
-            self.height = res[:height]
-          end
+          res = CDN::CommunicationSystem.upload(uuid: self.uuid, source_file_path: self.source_file.try(:path), file_extension: self.file_extension)
+          self.width = res[:width]
+          self.height = res[:height]
         end
       end
 
       def rescue_upload_response
         self.errors.add(:image, "The photo could not be uploaded")
+        false
       end
 
       def rescue_destroy_response
@@ -113,12 +115,15 @@ module ImageSystem
 
       def check_source_file_content_type
         content_type = self.source_file.content_type
-        type = content_type.split('/').last
-        if contente_type_white_list.include?(content_type)
-          self.file_extension = type
-        else
-          errors.add(:source_file, "File type is not allowed #{type}")
-        end
+        errors.add(:source_file, "File type is not allowed #{get_image_type}") unless contente_type_white_list.include?(content_type)
+      end
+
+      def set_file_extension
+        self.file_extension = get_image_type
+      end
+
+      def get_image_type
+        self.source_file.content_type.split('/').last
       end
 
       def contente_type_white_list
