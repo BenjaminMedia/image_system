@@ -22,13 +22,13 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   # allows to communicate with the cdn image system API
-  s.add_dependency "cdnconnect-api"
+  s.add_dependency "cdnconnect-api",'~> 0.4.2'
 
   # allows the creation of long ids for the images
-  s.add_dependency "uuidtools"
+  s.add_dependency "uuidtools",'~> 2.1.4'
 
   # rails interface to databases, allows to use validations and callbacks
-  s.add_dependency "activerecord"
+  s.add_dependency "activerecord",'~> 4.0.4'
 
   # adds methods to test generators with rspec
   s.add_development_dependency "generator_spec"
