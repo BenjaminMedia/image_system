@@ -178,7 +178,7 @@ describe ImageSystem::Concerns::Image do
       expect(new_photo.destroy).to eq(new_photo)
     end
 
-    it  "does not delete an image if there is an unknown error from the server" do
+    it "does not delete an image if there is an unknown error from the server" do
       ImageSystem::CDN::CommunicationSystem.stub(:delete).and_raise(Exceptions::CdnUnknownException.new("cdn communication system failed"))
       ImageSystem::CDN::CommunicationSystem.should_receive(:delete)
       expect(photo.destroy).to eq(nil)
@@ -189,20 +189,28 @@ describe ImageSystem::Concerns::Image do
       ImageSystem::CDN::CommunicationSystem.should_receive(:delete)
       expect(photo.destroy).to eq(nil)
     end
+
+    context "has crops" do
+      let(:photo_aspect) { create(:photo_aspect) }
+      let(:photo_crop) { create(:photo_crop, photo: photo, photo_aspect: photo_aspect) }
+
+      it "deletes all crops related to deleted photo" do
+        photo.photo_crops = [photo_crop]
+        ImageSystem::CDN::CommunicationSystem.stub(:delete) { true }
+        expect {
+          photo.destroy
+        }.to change(photo.photo_crops, :count).to(0)
+      end
+    end
   end
 
   describe "#url" do
 
+    let(:photo_crop) { create(:photo_crop, photo: photo, photo_aspect: create(:square_photo_aspect)) }
+
     before(:each) do
       ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
     end
-
-    it "returns an url to the image with the given uuid" do
-      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" })
-      ImageSystem::CDN::CommunicationSystem.should_receive(:download).with({ uuid: photo.uuid, file_extension: "jpg" })
-      photo.url
-    end
-
     it "returns nil if image is a new record" do
       ImageSystem::CDN::CommunicationSystem.stub(:info)
       ImageSystem::CDN::CommunicationSystem.should_not_receive(:download)
@@ -210,9 +218,63 @@ describe ImageSystem::Concerns::Image do
     end
 
     it "returns nil if the object does not exist" do
-      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" }).and_raise(Exceptions::NotFoundException.new("Does not exist any image with that uuid"))
+      not_found_exception = Exceptions::NotFoundException.new("Does not exist any image with that uuid")
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" }).and_raise(not_found_exception)
       ImageSystem::CDN::CommunicationSystem.should_not_receive(:download)
       expect(photo.url).to be_nil
+    end
+
+    it "returns an url to the image" do
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" })
+      download_args = { uuid: photo.uuid, file_extension: "jpg", width: photo.width, height: photo.height, aspect: :original }
+      ImageSystem::CDN::CommunicationSystem.should_receive(:download).with(download_args)
+      photo.url
+    end
+
+    it "returns an url to the image with download option to true" do
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" })
+      download_args = { uuid: photo.uuid, file_extension: "jpg", width: photo.width, height: photo.height, aspect: :original, download: true }
+      ImageSystem::CDN::CommunicationSystem.should_receive(:download).with(download_args)
+      photo.url(download: true)
+    end
+
+    it "returns an url to the image with download option to true(string passed)" do
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" })
+      download_args = { uuid: photo.uuid, file_extension: "jpg", width: photo.width, height: photo.height, aspect: :original, download: "true" }
+      ImageSystem::CDN::CommunicationSystem.should_receive(:download).with(download_args)
+      photo.url(download: "true")
+    end
+
+    it "returns an url to the image with the given width and height" do
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" })
+      download_args = { uuid: photo.uuid, file_extension: "jpg", width: 100, height: 100, aspect: :original }
+      ImageSystem::CDN::CommunicationSystem.should_receive(:download).with(download_args)
+      photo.url(width: 100, height: 100)
+    end
+
+    it "returns an url to the image with the given aspect" do
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" })
+      download_args = { uuid: photo.uuid, file_extension: "jpg", width: photo.width, height: photo.height, aspect: "square" }
+      ImageSystem::CDN::CommunicationSystem.should_receive(:download).with(download_args)
+      photo.url(aspect: "square")
+    end
+
+    it "returns an url to the image with the given aspect and the crop coordinates if it exists" do
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" })
+      download_args = { uuid: photo.uuid, file_extension: "jpg",
+                        width: photo.width, height: photo.height, aspect: "square",
+                        crop: { x1: photo_crop.x1, y1: photo_crop.y1, x2: photo_crop.x2, y2: photo_crop.y2 } }
+      ImageSystem::CDN::CommunicationSystem.should_receive(:download).with(download_args)
+      photo.url(aspect: "square")
+    end
+
+    it "returns an url to the image with the given aspect and the crop coordinates if it exists(aspect name given in symbol)" do
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" })
+      download_args = { uuid: photo.uuid, file_extension: "jpg",
+                        width: photo.width, height: photo.height, aspect: :square,
+                        crop: { x1: photo_crop.x1, y1: photo_crop.y1, x2: photo_crop.x2, y2: photo_crop.y2 } }
+      ImageSystem::CDN::CommunicationSystem.should_receive(:download).with(download_args)
+      photo.url(aspect: :square)
     end
   end
 

@@ -20,10 +20,10 @@ module Cdn
 
       def create_migrations
         if model_exists?(destination_root, class_name)
-          migration =  "/add_cdn_fields_to_#{class_name.pluralize.downcase}"
-          migration_template 'add_cdn_fields_to_images.rb', migration_path + migration unless migration_exists?(destination_root, migration)
+          migration =  "/add_cdn_fields_to_#{class_name.pluralize.downcase}.rb"
+          res = migration_template 'add_cdn_fields_to_images.rb', migration_path + migration unless migration_exists?(destination_root, migration)
         else
-          migration = "/create_#{class_name.pluralize.downcase}_with_cdn_fields"
+          migration = "/create_#{class_name.pluralize.downcase}_with_cdn_fields.rb"
           migration_template 'create_images_with_cdn_fields.rb', migration_path + migration unless migration_exists?(destination_root, migration)
         end
       end
