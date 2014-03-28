@@ -231,6 +231,20 @@ describe ImageSystem::Concerns::Image do
       photo.url
     end
 
+    it "returns an url to the image with download option to true" do
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" })
+      download_args = { uuid: photo.uuid, file_extension: "jpg", width: photo.width, height: photo.height, aspect: :original, download: true }
+      ImageSystem::CDN::CommunicationSystem.should_receive(:download).with(download_args)
+      photo.url(download: true)
+    end
+
+    it "returns an url to the image with download option to true(string passed)" do
+      ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" })
+      download_args = { uuid: photo.uuid, file_extension: "jpg", width: photo.width, height: photo.height, aspect: :original, download: "true" }
+      ImageSystem::CDN::CommunicationSystem.should_receive(:download).with(download_args)
+      photo.url(download: "true")
+    end
+
     it "returns an url to the image with the given width and height" do
       ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" })
       download_args = { uuid: photo.uuid, file_extension: "jpg", width: 100, height: 100, aspect: :original }
