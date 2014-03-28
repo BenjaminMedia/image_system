@@ -43,11 +43,7 @@ module ImageSystem
            return nil
         end
 
-        if self.new_record?
-          nil
-        else
-          CDN::CommunicationSystem.download(options)
-        end
+        CDN::CommunicationSystem.download(options) unless self.new_record?
       end
 
       def extension_to_content_type_white_list
