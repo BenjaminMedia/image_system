@@ -19,10 +19,13 @@ module ImageSystem
         # Validations
         validates :source_file, presence: true, on: :create
         validate :check_source_file_content_type, on: :create, if: -> { source_file.present? }
-        validates :uuid, presence: true, on: :update
-        validates :width, presence: true, on: :update
-        validates :height, presence: true, on: :update
-        validates :file_extension, presence: true, on: :update
+
+        with_options unless: :new_record? do |image|
+          image.validates :uuid, presence: true
+          image.validates :width, presence: true
+          image.validates :height, presence: true
+          image.validates :file_extension, presence: true
+        end
 
         # Callbacks
         before_create :set_uuid

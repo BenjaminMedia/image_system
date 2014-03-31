@@ -17,7 +17,7 @@ describe ImageSystem::Concerns::Image do
       ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
     end
 
-    it "does not validate an image without the presence of uuid" do
+    it "does not validate an existing image without the presence of uuid" do
       photo.uuid = nil
       expect(photo).to_not be_valid
     end
@@ -38,7 +38,7 @@ describe ImageSystem::Concerns::Image do
       expect(photo).to be_valid
     end
 
-    it "does not validate an image without the presence of width" do
+    it "does not validate an existing image without the presence of width" do
       photo.width = nil
       expect(photo).to_not be_valid
     end
@@ -48,7 +48,7 @@ describe ImageSystem::Concerns::Image do
       expect(new_photo).to be_valid
     end
 
-    it "does not validate an image without the presence of height" do
+    it "does not validate an existing image without the presence of height" do
       photo.height = nil
       expect(photo).to_not be_valid
     end
@@ -58,7 +58,7 @@ describe ImageSystem::Concerns::Image do
       expect(new_photo).to be_valid
     end
 
-    it "does not validate an image without the presence of file_extension" do
+    it "does not validate an existing image without the presence of file_extension" do
       photo.file_extension = nil
       expect(photo).to_not be_valid
     end
