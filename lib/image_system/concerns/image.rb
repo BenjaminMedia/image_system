@@ -55,13 +55,11 @@ module ImageSystem
         options = set_url_options(options)
         options = set_crop_options_for_url(options)
 
-        begin
-           CDN::CommunicationSystem.info(uuid: self.uuid, file_extension: self.file_extension)
-        rescue ImageSystem::Exceptions::NotFoundException
-           return nil
+        if !new_record? && image_exists?
+          CDN::CommunicationSystem.download(options)
+        else
+          nil
         end
-
-        CDN::CommunicationSystem.download(options) unless self.new_record?
       end
 
       def extension_to_content_type_white_list
@@ -119,10 +117,14 @@ module ImageSystem
       end
 
       def image_exists
+        errors.add(:base, "Image does not exists") unless image_exists?
+      end
+
+      def image_exists?
         begin
           CDN::CommunicationSystem.info(uuid: uuid, file_extension: file_extension)
         rescue ImageSystem::Exceptions::NotFoundException, ArgumentError => e
-          errors.add(:base, e.message)
+          false
         end
       end
 
