@@ -62,7 +62,7 @@ describe ImageSystem::CDN::CommunicationSystem do
       CDNConnect::APIClient.any_instance.stub(:upload) { Response.new(:status => 503) }
 
       expect { subject.upload( uuid: @uuid_to_upload, source_file_path: @jpg_file.path, file_extension: file_extension(@jpg_file.content_type)) }.
-        to raise_error(Exceptions::CdnResponseException, "http_response was nil")
+        to raise_error(ImageSystem::Exceptions::CdnResponseException, "http_response was nil")
     end
 
     it "receives a jpg file and uploads it to cdn", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
@@ -176,14 +176,14 @@ describe ImageSystem::CDN::CommunicationSystem do
     it "fails if the passed cropping options does not have the 4 coordinates" do
       coordinates = {crop: { x1: 50, y1: 70, x2: 350 } }
       args = { uuid: @uuid, file_extension: "jpg" }.merge(coordinates)
-      expect { subject.download(args) }.to raise_error(Exceptions::WrongCroppingFormatException,
+      expect { subject.download(args) }.to raise_error(ImageSystem::Exceptions::WrongCroppingFormatException,
        "Wrong cropping coordinates format. The crop coordinates should be given in the following format { crop: { x1: value, y1: value, x2: value, y2: value } } ")
     end
 
     it "fails if the passed cropping options have one repeated coordinate" do
       coordinates = {crop: { x1: 50, y2: 70, x2: 350, y2: 450 } }
       args = { uuid: @uuid, file_extension: "jpg" }.merge(coordinates)
-      expect { subject.download(args) }.to raise_error(Exceptions::WrongCroppingFormatException,
+      expect { subject.download(args) }.to raise_error(ImageSystem::Exceptions::WrongCroppingFormatException,
        "Wrong cropping coordinates format. The crop coordinates should be given in the following format { crop: { x1: value, y1: value, x2: value, y2: value } } ")
     end
 
@@ -223,12 +223,12 @@ describe ImageSystem::CDN::CommunicationSystem do
 
     it "returns an exception if an object is not found", :vcr do
       expect { subject.rename( old_uuid: "2", new_uuid: @new_uuid, file_extension: "jpg") }.
-        to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
+        to raise_error(ImageSystem::Exceptions::NotFoundException, "Does not exist any image with that uuid")
     end
 
     it "returns an exception if there is an image with the same uuid as new uuid", :vcr do
       expect { subject.rename( old_uuid: @old_uuid, new_uuid: @already_existing_uuid, file_extension: "jpg") }.
-        to raise_error(Exceptions::AlreadyExistsException, "There is an image with the same uuid as the new one")
+        to raise_error(ImageSystem::Exceptions::AlreadyExistsException, "There is an image with the same uuid as the new one")
     end
 
     it "returns an error if the old uuid is not provided" do
@@ -252,7 +252,7 @@ describe ImageSystem::CDN::CommunicationSystem do
     it "returns an error if the renaming fails" do
       CDNConnect::APIClient.any_instance.stub(:rename_object) { Response.new }
       expect { subject.rename( old_uuid: @old_uuid, new_uuid: @new_uuid, file_extension: "jpg") }.
-        to raise_error(Exceptions::CdnUnknownException, "cdn communication system failed")
+        to raise_error(ImageSystem::Exceptions::CdnUnknownException, "cdn communication system failed")
     end
   end
 
@@ -271,7 +271,7 @@ describe ImageSystem::CDN::CommunicationSystem do
 
     it "does not delete if it does exist and returns an error", :vcr do
       expect { subject.delete(uuid: "non_existing_uuid", file_extension: "jpg") }.
-        to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
+        to raise_error(ImageSystem::Exceptions::NotFoundException, "Does not exist any image with that uuid")
     end
 
     it "does not delete if it does exist and returns an error", :vcr do
@@ -286,7 +286,7 @@ describe ImageSystem::CDN::CommunicationSystem do
     it "returns an error if the deleting operation fails" do
       CDNConnect::APIClient.any_instance.stub(:delete_object) { Response.new }
       expect { subject.delete(uuid: "non_existing_uuid", file_extension: "jpg") }.
-        to raise_error(Exceptions::CdnUnknownException, "cdn communication system failed")
+        to raise_error(ImageSystem::Exceptions::CdnUnknownException, "cdn communication system failed")
     end
 
   end
@@ -308,7 +308,7 @@ describe ImageSystem::CDN::CommunicationSystem do
 
     it "returns an error if the image for that uuid does not exist", :vcr do
       expect { res = subject.info(uuid: "non_existing_uuid", file_extension: "jpg") }.
-        to raise_error(Exceptions::NotFoundException, "Does not exist any image with that uuid")
+        to raise_error(ImageSystem::Exceptions::NotFoundException, "Does not exist any image with that uuid")
     end
 
   end
