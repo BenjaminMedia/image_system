@@ -17,85 +17,78 @@ describe ImageSystem::Concerns::Image do
       ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
     end
 
-    it "does not validate an existing image without the presence of uuid" do
-      photo.uuid = nil
-      expect(photo).to_not be_valid
-    end
+    context "has source file" do
+      let(:new_photo) { build(:photo, source_file: uploaded_file(:jpg_args)) }
 
-    it "does validate an image without the presence of uuid if it's a new record" do
-      new_photo.uuid = nil
-      expect(new_photo).to be_valid
-    end
-
-    it "does not validate an image without the presence of source_file" do
-      new_photo.source_file = nil
-      expect(new_photo).to_not be_valid
-    end
-
-    it "Validate an image without the presence of source_file if its not a new record" do
-      photo.source_file = nil
-      photo.save
-      expect(photo).to be_valid
-    end
-
-    it "does not validate an existing image without the presence of width" do
-      photo.width = nil
-      expect(photo).to_not be_valid
-    end
-
-    it "does validate an image without the presence of width if it's a new record" do
-      new_photo.width = nil
-      expect(new_photo).to be_valid
-    end
-
-    it "does not validate an existing image without the presence of height" do
-      photo.height = nil
-      expect(photo).to_not be_valid
-    end
-
-    it "does validate an image without the presence of height if it's a new record" do
-      new_photo.height = nil
-      expect(new_photo).to be_valid
-    end
-
-    it "does not validate an existing image without the presence of file_extension" do
-      photo.file_extension = nil
-      expect(photo).to_not be_valid
-    end
-
-    it "validates an image if uuid, source_file and file_extension are present" do
-      expect(new_photo).to be_valid
-    end
-
-    describe "check_source_file_content_type" do
-
-      before(:each) do
-        ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
+      it "is valid" do
+        expect(new_photo).to be_valid
       end
 
-      it "does not validate an object which the content_type is not allowed" do
-        expect(bmp_photo).to_not be_valid
+      describe "check_source_file_content_type" do
+        it "does not validate an object which the content_type is not allowed" do
+          expect(bmp_photo).to_not be_valid
+        end
+
+        it "validates jpg files" do
+          expect(jpg_photo).to be_valid
+        end
+
+        it "validates jpeg files" do
+          expect(jpeg_photo).to be_valid
+        end
+
+        it "validates png files" do
+          expect(png_photo).to be_valid
+        end
+
+        it "validates gif files" do
+          expect(gif_photo).to be_valid
+        end
+
+        it "white list can be extended" do
+          Photo.any_instance.stub(:extension_to_content_type_white_list).and_return(%w(image/bmp))
+          expect(bmp_photo).to be_valid
+        end
+      end
+    end
+
+    context "has no source file" do
+      let(:new_photo) { build(:photo) }
+
+      it "validates the presence of uuid" do
+        expect(new_photo).to_not be_valid
+        expect(new_photo.errors[:uuid]).to include("can't be blank")
       end
 
-      it "validates jpg files" do
-        expect(jpg_photo).to be_valid
+      it "validates the presence of width" do
+        expect(new_photo).to_not be_valid
+        expect(new_photo.errors[:width]).to include("can't be blank")
       end
 
-      it "validates jpeg files" do
-        expect(jpeg_photo).to be_valid
+      it "validates the presence of height" do
+        expect(new_photo).to_not be_valid
+        expect(new_photo.errors[:height]).to include("can't be blank")
       end
 
-      it "validates png files" do
-        expect(png_photo).to be_valid
+      it "validates the presence of file extension" do
+        expect(new_photo).to_not be_valid
+        expect(new_photo.errors[:file_extension]).to include("can't be blank")
       end
 
-      it "validates gif files" do
-        expect(gif_photo).to be_valid
-      end
+      context "image exists on cdn" do
+        before { allow(ImageSystem::CDN::CommunicationSystem).to receive(:info).and_return(true) }
 
-      it "white list can be extended" do
-        Photo.any_instance.stub(:extension_to_content_type_white_list).and_return(%w(image/bmp))
-        expect(bmp_photo).to be_valid
+        it "is valid with uuid, width, height and file extension" do
+          new_photo = build(:photo, uuid: "12345", width: 100, height: 100, file_extension: "jpg")
+          expect(new_photo).to be_valid
+        end
+      end
+      context "image does not exist" do
+        it "is not valid" do
+          new_photo = build(:photo, uuid: "12345", width: 100, height: 100, file_extension: "jpg")
+          expect(new_photo).to_not be_valid
+          expect(new_photo.errors[:base]).to include("Does not exist any image with that uuid")
+        end
       end
     end
   end
@@ -123,15 +116,15 @@ describe ImageSystem::Concerns::Image do
     describe "#upload_to_system" do
 
       it "does not save an image that is new and has not received a response from cdn" do
-        ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_raise(Exceptions::CdnResponseException.new("http_response was nil"))
+        ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_raise(ImageSystem::Exceptions::CdnResponseException.new("http_response was nil"))
         expect(new_photo_to_upload.save).to eq(false)
-        expect(new_photo_to_upload.errors.full_messages).to include("Image The photo could not be uploaded")
+        expect(new_photo_to_upload.errors.full_messages).to include("The photo could not be uploaded")
       end
 
       it "does not save an image that is new and has not been uploaded successfully for unknown reasons" do
-        ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_raise(Exceptions::CdnUnknownException.new("cdn communication system failed"))
+        ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_raise(ImageSystem::Exceptions::CdnUnknownException.new("cdn communication system failed"))
         expect(new_photo_to_upload.save).to eq(false)
-        expect(new_photo_to_upload.errors.full_messages).to include("Image The photo could not be uploaded")
+        expect(new_photo_to_upload.errors.full_messages).to include("The photo could not be uploaded")
       end
 
       it "saves an image that is new and has been uploaded successfully" do
@@ -191,13 +184,13 @@ describe ImageSystem::Concerns::Image do
     end
 
     it "does not delete an image if there is an unknown error from the server" do
-      ImageSystem::CDN::CommunicationSystem.stub(:delete).and_raise(Exceptions::CdnUnknownException.new("cdn communication system failed"))
+      ImageSystem::CDN::CommunicationSystem.stub(:delete).and_raise(ImageSystem::Exceptions::CdnUnknownException.new("cdn communication system failed"))
       ImageSystem::CDN::CommunicationSystem.should_receive(:delete)
       expect(photo.destroy).to eq(nil)
     end
 
     it  "does not delete an image if there isn't a response from the server" do
-      ImageSystem::CDN::CommunicationSystem.stub(:delete).and_raise(Exceptions::CdnResponseException.new("http_response was nil"))
+      ImageSystem::CDN::CommunicationSystem.stub(:delete).and_raise(ImageSystem::Exceptions::CdnResponseException.new("http_response was nil"))
       ImageSystem::CDN::CommunicationSystem.should_receive(:delete)
       expect(photo.destroy).to eq(nil)
     end
@@ -230,7 +223,7 @@ describe ImageSystem::Concerns::Image do
     end
 
     it "returns nil if the object does not exist" do
-      not_found_exception = Exceptions::NotFoundException.new("Does not exist any image with that uuid")
+      not_found_exception = ImageSystem::Exceptions::NotFoundException.new("Does not exist any image with that uuid")
       ImageSystem::CDN::CommunicationSystem.stub(:info).with({ uuid: photo.uuid, file_extension: "jpg" }).and_raise(not_found_exception)
       ImageSystem::CDN::CommunicationSystem.should_not_receive(:download)
       expect(photo.url).to be_nil
