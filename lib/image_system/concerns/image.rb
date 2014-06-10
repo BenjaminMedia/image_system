@@ -17,20 +17,22 @@ module ImageSystem
         attr_readonly :uuid, :width, :height, :file_extension
 
         # Validations
-        validates :source_file, presence: true, on: :create
         validate :check_source_file_content_type, on: :create, if: -> { source_file.present? }
 
-        with_options unless: :new_record? do |image|
+        with_options unless: "source_file.present?" do |image|
           image.validates :uuid, presence: true
           image.validates :width, presence: true
           image.validates :height, presence: true
           image.validates :file_extension, presence: true
+          image.validate :image_exists
         end
 
         # Callbacks
-        before_create :set_uuid
-        before_create :set_file_extension, if: -> { source_file.present? }
-        before_create :upload_to_system
+        with_options if: "source_file.present?" do |image|
+          image.before_create :set_uuid
+          image.before_create :set_file_extension
+          image.before_create :upload_to_system
+        end
       end
 
       module ClassMethods
@@ -39,7 +41,7 @@ module ImageSystem
         end
 
         def crop_association_name
-           "#{model_name.singular}_crops".to_sym
+          "#{model_name.singular}_crops".to_sym
         end
       end
 
@@ -53,13 +55,11 @@ module ImageSystem
         options = set_url_options(options)
         options = set_crop_options_for_url(options)
 
-        begin
-           CDN::CommunicationSystem.info(uuid: self.uuid, file_extension: self.file_extension)
-        rescue Exceptions::NotFoundException
-           return nil
+        if !new_record? && image_exists?
+          CDN::CommunicationSystem.download(options)
+        else
+          nil
         end
-
-        CDN::CommunicationSystem.download(options) unless self.new_record?
       end
 
       def extension_to_content_type_white_list
@@ -86,10 +86,10 @@ module ImageSystem
       def rescue_from_cdn_failure(method, &block)
         begin
           block.call
-        rescue Exceptions::CdnResponseException => e
+        rescue ImageSystem::Exceptions::CdnResponseException => e
           # should log the problem
           send("rescue_#{method}_response")
-        rescue Exceptions::CdnUnknownException => e
+        rescue ImageSystem::Exceptions::CdnUnknownException => e
           # should log the problem
           send("rescue_#{method}_response")
         end
@@ -108,12 +108,24 @@ module ImageSystem
       end
 
       def rescue_upload_response
-        self.errors.add(:image, "The photo could not be uploaded")
+        self.errors.add(:base, "The photo could not be uploaded")
         false
       end
 
       def rescue_destroy_response
         false
+      end
+
+      def image_exists
+        errors.add(:base, "Image does not exists") unless image_exists?
+      end
+
+      def image_exists?
+        begin
+          CDN::CommunicationSystem.info(uuid: uuid, file_extension: file_extension)
+        rescue ImageSystem::Exceptions::NotFoundException, ArgumentError => e
+          false
+        end
       end
 
       def check_source_file_content_type

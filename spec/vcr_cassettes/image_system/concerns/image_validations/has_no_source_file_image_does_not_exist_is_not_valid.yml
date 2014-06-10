@@ -1,0 +1,45 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api.cdnconnect.com/v1/benjamin.cdnconnect.com/12345.jpg.json
+    body:
+      encoding: UTF-8
+      string: ''
+    headers:
+      User-Agent:
+      - cdnconnect-api-ruby v0.4.2
+      Authorization:
+      - Bearer 1JQAmdOFpjLRq0P4qeYRRz79wOcjpkeKEiTa4GfHJ
+      Cache-Control:
+      - no-store
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 404
+      message: Not Found
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Tue, 10 Jun 2014 10:09:30 GMT
+      Server:
+      - Google Frontend
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: UTF-8
+      string: '{"results":{"app":{"domain":"cdnconnect.com","bytes_transferred":103349805559,"original_file_size":360502491737,"percent_cache_hits":"93.7","noncache_hits":352317,"folder_count":0,"file_size":350879311338,"id":"dj3bhE6kK1GYY7V","hits":5589226,"ssl_url":null,"custom_domain":false,"cache_hits":5236909,"hostname":"benjamin.cdnconnect.com","uri":"http://benjamin.cdnconnect.com/","trans_file_size":81236221998,"label":"benjamin","percent_noncache_hits":"6.3","file_count":666802,"root_folder_id":"tW8KTTBQdD2C","subdomain":"benjamin","trans_count":4344761}},"msgs":[{"status":"error","text":"Invalid
+        uri"}]}'
+    http_version: 
+  recorded_at: Tue, 10 Jun 2014 10:09:46 GMT
+recorded_with: VCR 2.9.0

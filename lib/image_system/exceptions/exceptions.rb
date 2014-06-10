@@ -1,16 +1,21 @@
-module Exceptions
-  class AlreadyExistsException < Exception
-  end
+module ImageSystem
+  module Exceptions
+    class ImageSystemError < StandardError
+    end
 
-  class CdnResponseException < Exception
-  end
+    class AlreadyExistsException < ImageSystemError
+    end
 
-  class CdnUnknownException < Exception
-  end
+    class CdnResponseException < ImageSystemError
+    end
 
-  class NotFoundException < Exception
-  end
+    class CdnUnknownException < ImageSystemError
+    end
 
-  class WrongCroppingFormatException < Exception
+    class NotFoundException < ImageSystemError
+    end
+
+    class WrongCroppingFormatException < ImageSystemError
+    end
   end
 end

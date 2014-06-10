@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    image_system (0.0.6)
+    image_system (0.0.7)
       activerecord (>= 4.0)
       cdnconnect-api (~> 0.4.2)
       uuidtools (~> 2.1.4)

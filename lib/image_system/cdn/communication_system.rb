@@ -112,13 +112,13 @@ module ImageSystem
         when 200
           true
         when 400
-          raise Exceptions::AlreadyExistsException.new("There is an image with the same uuid as the new one")
+          raise ImageSystem::Exceptions::AlreadyExistsException.new("There is an image with the same uuid as the new one")
         when 404
-          raise Exceptions::NotFoundException.new("Does not exist any image with that uuid")
+          raise ImageSystem::Exceptions::NotFoundException.new("Does not exist any image with that uuid")
         when 503
-          raise Exceptions::CdnResponseException.new("http_response was nil")
+          raise ImageSystem::Exceptions::CdnResponseException.new("http_response was nil")
         else
-          raise Exceptions::CdnUnknownException.new("cdn communication system failed")
+          raise ImageSystem::Exceptions::CdnUnknownException.new("cdn communication system failed")
         end
       end
 
@@ -138,7 +138,7 @@ module ImageSystem
         if res.empty?
           { :crop => "#{crop[:x1]},#{crop[:y1]},#{crop[:x2]},#{crop[:y2]}" }
         else
-          raise Exceptions::WrongCroppingFormatException.new(exception_message)
+          raise ImageSystem::Exceptions::WrongCroppingFormatException.new(exception_message)
         end
       end
 
