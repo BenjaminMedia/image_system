@@ -24,7 +24,6 @@ module ImageSystem
           image.validates :width, presence: true
           image.validates :height, presence: true
           image.validates :file_extension, presence: true
-          image.validate :image_exists
         end
 
         # Callbacks
@@ -114,10 +113,6 @@ module ImageSystem
 
       def rescue_destroy_response
         false
-      end
-
-      def image_exists
-        errors.add(:base, "Image does not exists") unless image_exists?
       end
 
       def image_exists?
