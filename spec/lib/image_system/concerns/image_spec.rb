@@ -74,22 +74,6 @@ describe ImageSystem::Concerns::Image do
         expect(new_photo).to_not be_valid
         expect(new_photo.errors[:file_extension]).to include("can't be blank")
       end
-
-      context "image exists on cdn" do
-        before { allow(ImageSystem::CDN::CommunicationSystem).to receive(:info).and_return(true) }
-
-        it "is valid with uuid, width, height and file extension" do
-          new_photo = build(:photo, uuid: "12345", width: 100, height: 100, file_extension: "jpg")
-          expect(new_photo).to be_valid
-        end
-      end
-      context "image does not exist" do
-        it "is not valid" do
-          new_photo = build(:photo, uuid: "12345", width: 100, height: 100, file_extension: "jpg")
-          expect(new_photo).to_not be_valid
-          expect(new_photo.errors[:base]).to include("Image does not exists")
-        end
-      end
     end
   end
 
