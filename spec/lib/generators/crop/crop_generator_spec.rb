@@ -30,7 +30,6 @@ describe CropGenerator do
     stub_model_file_and_unstub_after("picture", true)
     run_generator %w(picture)
     assert_file "app/models/picture_crop.rb", /belongs_to :picture/
-    assert_file "app/models/picture_crop.rb", /belongs_to :picture_aspect/
   end
 
   it "creates a crop model with the correct validations" do
@@ -41,8 +40,7 @@ describe CropGenerator do
     assert_file "app/models/picture_crop.rb", /validates :y2, presence: true/
     assert_file "app/models/picture_crop.rb", /validates :x2, presence: true/
     assert_file "app/models/picture_crop.rb", /validates :picture, presence: true/
-    assert_file "app/models/picture_crop.rb", /validates :picture_aspect, presence: true/
-    assert_file "app/models/picture_crop.rb", /validates :picture_aspect, uniqueness: { scope: :picture }/
+    assert_file "app/models/picture_crop.rb", /validates :aspect, uniqueness: { scope: :picture_id }/
   end
 
   it "creates a migration to create the crop table" do
@@ -73,6 +71,6 @@ describe CropGenerator do
   it "adds an id field as part of the migration name" do
     stub_model_file_and_unstub_after("picture", true)
     run_generator %w(picture)
-    assert_migration "db/migrate/create_picture_crops.rb", /t.references :picture_aspect, index: true/
+    assert_migration "db/migrate/create_picture_crops.rb", /t.integer :aspect, null: false, default: 0/
   end
 end

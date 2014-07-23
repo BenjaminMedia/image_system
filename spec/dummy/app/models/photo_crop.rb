@@ -31,4 +31,8 @@ class PhotoCrop < ActiveRecord::Base
   def self.available_aspects
     aspects.keys
   end
+
+  def self.crop_for(aspect)
+    find_by_aspect(aspects[aspect])
+  end
 end
