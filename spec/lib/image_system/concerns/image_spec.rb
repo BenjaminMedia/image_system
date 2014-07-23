@@ -180,8 +180,7 @@ describe ImageSystem::Concerns::Image do
     end
 
     context "has crops" do
-      let(:photo_aspect) { create(:photo_aspect) }
-      let(:photo_crop) { create(:photo_crop, photo: photo, photo_aspect: photo_aspect) }
+      let(:photo_crop) { create(:photo_crop, photo: photo) }
 
       it "deletes all crops related to deleted photo" do
         photo.photo_crops = [photo_crop]
@@ -195,7 +194,7 @@ describe ImageSystem::Concerns::Image do
 
   describe "#url" do
 
-    let(:photo_crop) { create(:photo_crop, photo: photo, photo_aspect: create(:square_photo_aspect)) }
+    let(:photo_crop) { create(:photo_crop, photo: photo, aspect: "square") }
 
     before(:each) do
       allow(ImageSystem::CDN::CommunicationSystem).to receive(:upload).and_return({result: true , height: 100, width: 100})

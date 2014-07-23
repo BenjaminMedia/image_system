@@ -1,7 +1,7 @@
 FactoryGirl.define do
   factory :photo_crop do
     photo :photo
-    photo_aspect :photo_aspect
+    aspect :original
     y1 0
     x1 0
     y2 100
