@@ -28,13 +28,13 @@ Gem::Specification.new do |s|
   s.add_dependency "uuidtools",'~> 2.1.4'
 
   # rails interface to databases, allows to use validations and callbacks
-  s.add_dependency "activerecord",'>= 4.0'
+  s.add_dependency "activerecord",'>= 4.1.4'
 
   # adds methods to test generators with rspec
-  s.add_development_dependency "generator_spec"
+  s.add_development_dependency "generator_spec", '>= 0.9.2'
 
   # testing framework
-  s.add_development_dependency "rspec"
+  s.add_development_dependency "rspec", '~> 2.14.1'
 
   # records webservice calls, making tests faster.
   s.add_development_dependency "vcr"
