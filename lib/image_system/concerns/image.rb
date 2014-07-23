@@ -45,9 +45,15 @@ module ImageSystem
       end
 
       def destroy
-        super if new_record? || rescue_from_cdn_failure("destroy") do
-          CDN::CommunicationSystem.delete(uuid: self.uuid, file_extension: self.file_extension)
+        if new_record?
+          super
+        else
+          rescue_from_cdn_failure("destroy") do
+            CDN::CommunicationSystem.delete(uuid: self.uuid, file_extension: self.file_extension)
+            super
+          end
         end
+
       end
 
       def url(options = {})
