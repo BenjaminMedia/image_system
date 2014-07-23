@@ -42,7 +42,6 @@ module ImageSystem
             super
           end
         end
-
       end
 
       def url(options = {})
@@ -69,8 +68,7 @@ module ImageSystem
       end
 
       def set_crop_options_for_url(options = {})
-        aspect_number = ImageCrop.aspects.fetch(options[:aspect])
-        crop = ImageCrop.find_by_aspect(aspect_number)
+        crop = crops.crop_for(options[:aspect])
         crop_args = crop ? { crop: { x1: crop.x1, y1: crop.y1, x2: crop.x2, y2: crop.y2 } } : {}
         options.merge!(crop_args)
       end

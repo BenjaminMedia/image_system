@@ -1,14 +1,4 @@
 class <%= class_name.camelize %>Crop < ActiveRecord::Base
-  # Constants
-  ASPECT_RATIOS = {
-    original: 0,
-    square: 1.0/1.0,
-    tv: 9.0/13.0,
-    wide: 12.0/29.0,
-    portrait: 3.0/2.0,
-    wide169: 9.0/16.0
-  }
-
   # Associations
   belongs_to :<%= class_name %>
 
@@ -25,10 +15,14 @@ class <%= class_name.camelize %>Crop < ActiveRecord::Base
 
   # Class Methods
   def self.aspect_ratios
-    ASPECT_RATIOS
+    raise NotImplementedError, "Must implement a hash of aspects in the following format: { aspect_name: aspect_ratio }"
   end
 
   def self.available_aspects
     aspects.keys
+  end
+
+  def self.crop_for(aspect)
+    find_by_aspect(aspects[aspect])
   end
 end
