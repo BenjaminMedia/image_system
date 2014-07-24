@@ -18,7 +18,7 @@ ActiveRecord::Schema.define(version: 20140327101210) do
     t.integer  "x1"
     t.integer  "y2"
     t.integer  "x2"
-    t.integer  "aspect",     default: 0, null: false
+    t.integer  "aspect"
     t.integer  "photo_id"
     t.datetime "created_at"
     t.datetime "updated_at"

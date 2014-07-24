@@ -5,7 +5,7 @@ class Create<%= class_name.camelize %>Crops < ActiveRecord::Migration
       t.integer :x1
       t.integer :y2
       t.integer :x2
-      t.integer :aspect, null: false, default: 0
+      t.integer :aspect
       t.references :<%= class_name %>, index: true
 
       t.timestamps

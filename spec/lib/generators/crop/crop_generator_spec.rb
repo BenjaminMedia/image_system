@@ -71,6 +71,6 @@ describe CropGenerator do
   it "adds an id field as part of the migration name" do
     stub_model_file_and_unstub_after("picture", true)
     run_generator %w(picture)
-    assert_migration "db/migrate/create_picture_crops.rb", /t.integer :aspect, null: false, default: 0/
+    assert_migration "db/migrate/create_picture_crops.rb", /t.integer :aspect/
   end
 end

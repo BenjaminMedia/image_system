@@ -5,7 +5,7 @@ class CreatePhotoCrops < ActiveRecord::Migration
       t.integer :x1
       t.integer :y2
       t.integer :x2
-      t.integer :aspect, null: false, default: 0
+      t.integer :aspect
       t.references :photo, index: true
 
       t.timestamps
