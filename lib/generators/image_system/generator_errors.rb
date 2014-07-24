@@ -22,20 +22,6 @@ module ImageSystem
       def migration_alredy_exists_error(migration_name)
         "A migration with the name #{migration_name} already exists please remove it to generate a new one"
       end
-
-      def aspect_model_already_exists_error
-        "The Aspect model already exists:
-          make sure it has a connection to crop like this:
-
-            has_many :crops
-
-          and that it has 2 fields called:
-
-            name and aspec_ratio
-
-          If you want to recreate it remove the aspect model and table
-          and run rails g aspect again and we will create it for you"
-      end
     end
   end
 end

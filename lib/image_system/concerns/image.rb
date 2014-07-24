@@ -10,8 +10,7 @@ module ImageSystem
       included do
 
         # Associations
-        has_many self.crop_association_name, dependent: :destroy
-        has_many self.aspect_association_name, through: self.crop_association_name
+        has_many :crops, dependent: :destroy, class_name: "#{model_name}Crop"
 
         # Attributes
         attr_readonly :uuid, :width, :height, :file_extension
@@ -34,19 +33,14 @@ module ImageSystem
         end
       end
 
-      module ClassMethods
-        def aspect_association_name
-          "#{model_name.singular}_aspects".to_sym
-        end
-
-        def crop_association_name
-          "#{model_name.singular}_crops".to_sym
-        end
-      end
-
       def destroy
-        super if new_record? || rescue_from_cdn_failure("destroy") do
-          CDN::CommunicationSystem.delete(uuid: self.uuid, file_extension: self.file_extension)
+        if new_record?
+          super
+        else
+          rescue_from_cdn_failure("destroy") do
+            CDN::CommunicationSystem.delete(uuid: self.uuid, file_extension: self.file_extension)
+            super
+          end
         end
       end
 
@@ -74,10 +68,7 @@ module ImageSystem
       end
 
       def set_crop_options_for_url(options = {})
-        # there is only one crop for each aspect
-        # see validations on the crops models
-        aspect = send(self.class.aspect_association_name).where(name: options[:aspect]).first
-        crop = aspect.try(self.class.crop_association_name).try(:first)
+        crop = crops.crop_for(options[:aspect])
         crop_args = crop ? { crop: { x1: crop.x1, y1: crop.y1, x2: crop.x2, y2: crop.y2 } } : {}
         options.merge!(crop_args)
       end

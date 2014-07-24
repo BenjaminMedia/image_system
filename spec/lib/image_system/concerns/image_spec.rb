@@ -1,15 +1,8 @@
 require 'spec_helper'
 
 describe ImageSystem::Concerns::Image do
-
-  let(:new_photo) { build(:photo, uuid: create_uuid, source_file: uploaded_file(:jpg_args), file_extension: "jpg") }
-  let(:new_photo_to_upload) { build(:photo, source_file: uploaded_file(:jpg_args), file_extension: "jpg") }
-  let(:photo) { create(:photo, source_file: uploaded_file(:jpg_args), file_extension: "jpg") }
-  let(:bmp_photo) { build(:photo, source_file: uploaded_file(:bmp_args)) }
-  let(:jpg_photo) { build(:photo, source_file: uploaded_file(:jpg_args)) }
-  let(:jpeg_photo) { build(:photo, source_file: uploaded_file(:jpeg_args)) }
-  let(:png_photo) { build(:photo, source_file: uploaded_file(:png_args)) }
-  let(:gif_photo) { build(:photo, source_file: uploaded_file(:gif_args)) }
+  let(:new_photo) { build(:photo) }
+  let(:photo) { create(:photo) }
 
   describe "#validations" do
 
@@ -18,34 +11,38 @@ describe ImageSystem::Concerns::Image do
     end
 
     context "has source file" do
-      let(:new_photo) { build(:photo, source_file: uploaded_file(:jpg_args)) }
-
       it "is valid" do
         expect(new_photo).to be_valid
       end
 
       describe "check_source_file_content_type" do
         it "does not validate an object which the content_type is not allowed" do
+          bmp_photo = build(:photo, source_file: uploaded_file(:bmp_args))
           expect(bmp_photo).to_not be_valid
         end
 
         it "validates jpg files" do
+          jpg_photo = build(:photo, source_file: uploaded_file(:jpg_args))
           expect(jpg_photo).to be_valid
         end
 
         it "validates jpeg files" do
+          jpeg_photo = build(:photo, source_file: uploaded_file(:jpeg_args))
           expect(jpeg_photo).to be_valid
         end
 
         it "validates png files" do
+          png_photo = build(:photo, source_file: uploaded_file(:png_args))
           expect(png_photo).to be_valid
         end
 
         it "validates gif files" do
+          gif_photo = build(:photo, source_file: uploaded_file(:gif_args))
           expect(gif_photo).to be_valid
         end
 
         it "white list can be extended" do
+          bmp_photo = build(:photo, source_file: uploaded_file(:bmp_args))
           Photo.any_instance.stub(:extension_to_content_type_white_list).and_return(%w(image/bmp))
           expect(bmp_photo).to be_valid
         end
@@ -53,12 +50,7 @@ describe ImageSystem::Concerns::Image do
     end
 
     context "has no source file" do
-      let(:new_photo) { build(:photo) }
-
-      it "validates the presence of uuid" do
-        expect(new_photo).to_not be_valid
-        expect(new_photo.errors[:uuid]).to include("can't be blank")
-      end
+      let(:new_photo) { build(:photo, source_file: nil) }
 
       it "validates the presence of width" do
         expect(new_photo).to_not be_valid
@@ -79,43 +71,35 @@ describe ImageSystem::Concerns::Image do
 
   describe "before_create" do
     describe "#set_uuid" do
-
       before(:each) do
         ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
       end
 
       it "sets uuid if is not set" do
-        expect(new_photo.uuid).to_not be_nil
-        expect(new_photo).to be_valid
-      end
-
-      it "if uuid has been set, should set another one." do
-        uuid = new_photo.uuid
+        expect(new_photo.uuid).to be_nil
         new_photo.save
-        expect(new_photo.uuid).to_not eq(uuid)
-        expect(new_photo).to be_valid
+        expect(new_photo.uuid).to_not be_nil
       end
     end
 
     describe "#upload_to_system" do
-
       it "does not save an image that is new and has not received a response from cdn" do
         ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_raise(ImageSystem::Exceptions::CdnResponseException.new("http_response was nil"))
-        expect(new_photo_to_upload.save).to eq(false)
-        expect(new_photo_to_upload.errors.full_messages).to include("The photo could not be uploaded")
+        expect(new_photo.save).to eq(false)
+        expect(new_photo.errors.full_messages).to include("The photo could not be uploaded")
       end
 
       it "does not save an image that is new and has not been uploaded successfully for unknown reasons" do
         ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_raise(ImageSystem::Exceptions::CdnUnknownException.new("cdn communication system failed"))
-        expect(new_photo_to_upload.save).to eq(false)
-        expect(new_photo_to_upload.errors.full_messages).to include("The photo could not be uploaded")
+        expect(new_photo.save).to eq(false)
+        expect(new_photo.errors.full_messages).to include("The photo could not be uploaded")
       end
 
       it "saves an image that is new and has been uploaded successfully" do
-        new_photo_to_upload.stub(:uuid).and_return("1")
-        upload_args = { uuid: new_photo_to_upload.uuid, source_file_path: new_photo_to_upload.source_file.path, file_extension: "jpg"}
+        new_photo.stub(:uuid).and_return("1")
+        upload_args = { uuid: new_photo.uuid, source_file_path: new_photo.source_file.path, file_extension: "jpg"}
         ImageSystem::CDN::CommunicationSystem.should_receive(:upload).with(upload_args).and_return({result: true , height: 100, width: 100})
-        expect(new_photo_to_upload.save).to eq(true)
+        expect(new_photo.save).to eq(true)
       end
 
       it "does not upload a new image that is not a new record and does not have a new uuid" do
@@ -127,31 +111,29 @@ describe ImageSystem::Concerns::Image do
       end
 
       it "sets the height and width if upload is correct" do
-        expect(new_photo_to_upload.height).to be_nil
-        expect(new_photo_to_upload.width).to be_nil
+        expect(new_photo.height).to be_nil
+        expect(new_photo.width).to be_nil
         ImageSystem::CDN::CommunicationSystem.should_receive(:upload).and_return({result: true , height: 100, width: 200})
-        new_photo_to_upload.save
-        expect(new_photo_to_upload.height).to eq(100)
-        expect(new_photo_to_upload.width).to eq(200)
+        new_photo.save
+        expect(new_photo.height).to eq(100)
+        expect(new_photo.width).to eq(200)
       end
     end
 
     describe "#set_file_extension" do
-
       before(:each) do
         ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
       end
 
       it "sets the file_extension " do
-        expect(gif_photo.file_extension).to be_nil
-        gif_photo.save
-        expect(gif_photo.file_extension).to_not be_nil
+        expect(new_photo.file_extension).to be_nil
+        new_photo.save
+        expect(new_photo.file_extension).to_not be_nil
       end
     end
   end
 
   describe "#destroy" do
-
     before(:each) do
       ImageSystem::CDN::CommunicationSystem.stub(:upload).and_return({result: true , height: 100, width: 100})
     end
@@ -170,32 +152,30 @@ describe ImageSystem::Concerns::Image do
     it "does not delete an image if there is an unknown error from the server" do
       ImageSystem::CDN::CommunicationSystem.stub(:delete).and_raise(ImageSystem::Exceptions::CdnUnknownException.new("cdn communication system failed"))
       ImageSystem::CDN::CommunicationSystem.should_receive(:delete)
-      expect(photo.destroy).to eq(nil)
+      expect(photo.destroy).to eq(false)
     end
 
     it  "does not delete an image if there isn't a response from the server" do
       ImageSystem::CDN::CommunicationSystem.stub(:delete).and_raise(ImageSystem::Exceptions::CdnResponseException.new("http_response was nil"))
       ImageSystem::CDN::CommunicationSystem.should_receive(:delete)
-      expect(photo.destroy).to eq(nil)
+      expect(photo.destroy).to eq(false)
     end
 
     context "has crops" do
-      let(:photo_aspect) { create(:photo_aspect) }
-      let(:photo_crop) { create(:photo_crop, photo: photo, photo_aspect: photo_aspect) }
+      let(:photo_crop) { create(:photo_crop, photo: photo) }
 
       it "deletes all crops related to deleted photo" do
-        photo.photo_crops = [photo_crop]
+        photo.crops = [photo_crop]
         ImageSystem::CDN::CommunicationSystem.stub(:delete) { true }
         expect {
           photo.destroy
-        }.to change(photo.photo_crops, :count).to(0)
+        }.to change(photo.crops, :count).to(0)
       end
     end
   end
 
   describe "#url" do
-
-    let(:photo_crop) { create(:photo_crop, photo: photo, photo_aspect: create(:square_photo_aspect)) }
+    let(:photo_crop) { create(:photo_crop, photo: photo, aspect: "square") }
 
     before(:each) do
       allow(ImageSystem::CDN::CommunicationSystem).to receive(:upload).and_return({result: true , height: 100, width: 100})
