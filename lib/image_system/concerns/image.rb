@@ -48,7 +48,7 @@ module ImageSystem
         options = set_url_options(options)
         options = set_crop_options_for_url(options)
 
-        if !new_record? && image_exists?
+        if persisted?
           CDN::CommunicationSystem.download(options)
         else
           nil
