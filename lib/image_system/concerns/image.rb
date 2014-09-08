@@ -48,7 +48,7 @@ module ImageSystem
         options = set_url_options(options)
         options = set_crop_options_for_url(options)
 
-        if !new_record? && image_exists?
+        if persisted?
           CDN::CommunicationSystem.download(options)
         else
           nil
@@ -104,14 +104,6 @@ module ImageSystem
 
       def rescue_destroy_response
         false
-      end
-
-      def image_exists?
-        begin
-          CDN::CommunicationSystem.info(uuid: uuid, file_extension: file_extension)
-        rescue ImageSystem::Exceptions::NotFoundException, ArgumentError => e
-          false
-        end
       end
 
       def check_source_file_content_type

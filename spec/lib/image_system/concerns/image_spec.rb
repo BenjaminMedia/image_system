@@ -187,13 +187,6 @@ describe ImageSystem::Concerns::Image do
       expect(new_photo.url).to be_nil
     end
 
-    it "returns nil if the object does not exist" do
-      not_found_exception = ImageSystem::Exceptions::NotFoundException.new("Does not exist any image with that uuid")
-      expect(ImageSystem::CDN::CommunicationSystem).to receive(:info).with({ uuid: photo.uuid, file_extension: "jpg" }).and_raise(not_found_exception)
-      expect(ImageSystem::CDN::CommunicationSystem).to_not receive(:download)
-      expect(photo.url).to be_nil
-    end
-
     context "the image exists" do
       before(:each) do
         allow(ImageSystem::CDN::CommunicationSystem).to receive(:info).with({ uuid: photo.uuid, file_extension: "jpg" }).and_return(true)
