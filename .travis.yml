@@ -1,5 +1,14 @@
 language: ruby
+cache: bundler
+
 rvm:
   - "2.1.1"
 # uncomment this line if your project needs to run something other than `rake`:
 script: bundle exec rspec spec
+
+notifications:
+  email:
+    recipients:
+      - andreo@benjamin.dk
+    on_failure: change
+    on_success: never

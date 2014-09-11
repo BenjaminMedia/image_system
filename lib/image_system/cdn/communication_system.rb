@@ -136,7 +136,7 @@ module ImageSystem
         res = [:x1, :y1, :x2, :y2] - crop.keys
 
         if res.empty?
-          { :crop => "#{crop[:x1]},#{crop[:y1]},#{crop[:x2]},#{crop[:y2]}" }
+          { :crop => "#{crop[:x1]}px,#{crop[:y1]}px,#{crop[:x2]}px,#{crop[:y2]}px" }
         else
           raise ImageSystem::Exceptions::WrongCroppingFormatException.new(exception_message)
         end
