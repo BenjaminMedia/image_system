@@ -167,10 +167,10 @@ describe ImageSystem::CDN::CommunicationSystem do
     end
 
     it "returns an image with the specified cropping coordinates" do
-      coordinates = {crop: { x1: 50, y1: 70, x2: 350, y2: 450 } }
+      coordinates = {crop: { x1: 155, y1: 124, x2: 796, y2: 568 } }
       args = { uuid: @uuid, file_extension: "jpg" }.merge(coordinates)
       res = subject.download(args)
-      expect(res).to include("50,70,350,450".to_query(:crop))
+      expect(res).to include("155px,124px,796px,568px".to_query(:crop))
     end
 
     it "fails if the passed cropping options does not have the 4 coordinates" do
@@ -188,10 +188,10 @@ describe ImageSystem::CDN::CommunicationSystem do
     end
 
     it "returns an image with the specified cropping coordinates even thought they are not in the same order" do
-      coordinates = {crop: { x1: 50, y2: 70, x2: 350, y1: 450 } }
+      coordinates = {crop: { x1: 155, y2: 568, x2: 796, y1: 124 } }
       args = { uuid: @uuid, file_extension: "jpg" }.merge(coordinates)
       res = subject.download(args)
-      expect(res).to include("50,450,350,70".to_query(:crop))
+      expect(res).to include("155px,124px,796px,568px".to_query(:crop))
     end
 
     it "returns a url without cropping if there is no crop coordinates" do
@@ -257,7 +257,6 @@ describe ImageSystem::CDN::CommunicationSystem do
   end
 
   describe ".delete" do
-
     it "deletes the picture and returns true if the given uuid exists", :vcr, match_requests_on: [:method, :uri_ignoring_trailing_nonce] do
       res = subject.delete(uuid: @already_existing_uuid, file_extension: "jpg")
       expect(res).to eq(true)
@@ -288,11 +287,9 @@ describe ImageSystem::CDN::CommunicationSystem do
       expect { subject.delete(uuid: "non_existing_uuid", file_extension: "jpg") }.
         to raise_error(ImageSystem::Exceptions::CdnUnknownException, "cdn communication system failed")
     end
-
   end
 
   describe ".info" do
-
     it "returns true if the image exists for that uuid", :vcr do
       res = subject.info(uuid: @uuid, file_extension: "jpg")
       expect(res).to eq(true)
@@ -310,8 +307,6 @@ describe ImageSystem::CDN::CommunicationSystem do
       expect { res = subject.info(uuid: "non_existing_uuid", file_extension: "jpg") }.
         to raise_error(ImageSystem::Exceptions::NotFoundException, "Does not exist any image with that uuid")
     end
-
   end
-
 end
 
