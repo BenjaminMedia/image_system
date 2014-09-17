@@ -175,8 +175,6 @@ describe ImageSystem::Concerns::Image do
   end
 
   describe "#url" do
-    let(:photo_crop) { create(:photo_crop, photo: photo, aspect: "square") }
-
     before(:each) do
       allow(ImageSystem::CDN::CommunicationSystem).to receive(:upload).and_return({result: true , height: 100, width: 100})
     end
@@ -217,34 +215,63 @@ describe ImageSystem::Concerns::Image do
       end
 
       it "returns an url to the image with the given aspect" do
-        download_args = { uuid: photo.uuid, file_extension: "jpg", width: photo.width, height: photo.height, aspect: "square" }
+        download_args = { uuid: photo.uuid, file_extension: "jpg", width: photo.width, height: photo.height, aspect: "square", crop: { x1: 0, y1: 0, x2: 100, y2: 100 } }
         expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
         photo.url(aspect: "square")
       end
 
-      it "returns an url to the image with the given aspect and the crop coordinates if it exists" do
-        download_args = { uuid: photo.uuid, file_extension: "jpg",
-                          width: photo.width, height: photo.height, aspect: "square",
-                          crop: { x1: photo_crop.x1, y1: photo_crop.y1, x2: photo_crop.x2, y2: photo_crop.y2 } }
-        expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
-        photo.url(aspect: "square")
+      context "crops exists" do
+        let(:photo_crop) { create(:photo_crop, photo: photo, aspect: "square") }
+
+        it "returns an url to the image with the given aspect and the crop coordinates" do
+          download_args = { uuid: photo.uuid, file_extension: "jpg",
+                            width: photo.width, height: photo.height, aspect: "square",
+                            crop: { x1: photo_crop.x1, y1: photo_crop.y1, x2: photo_crop.x2, y2: photo_crop.y2 } }
+          expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+          photo.url(aspect: "square")
+        end
+
+        it "returns an url to the image with the given aspect and the crop coordinates (aspect name given in symbol)" do
+          download_args = { uuid: photo.uuid, file_extension: "jpg",
+                            width: photo.width, height: photo.height, aspect: :square,
+                            crop: { x1: photo_crop.x1, y1: photo_crop.y1, x2: photo_crop.x2, y2: photo_crop.y2 } }
+          expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+          photo.url(aspect: :square)
+        end
       end
 
-      it "returns an url to the image with the given aspect and the crop coordinates if it exists(aspect name given in symbol)" do
-        download_args = { uuid: photo.uuid, file_extension: "jpg",
-                          width: photo.width, height: photo.height, aspect: :square,
-                          crop: { x1: photo_crop.x1, y1: photo_crop.y1, x2: photo_crop.x2, y2: photo_crop.y2 } }
-        expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
-        photo.url(aspect: :square)
+      context "crops does not exists" do
+        context "image fits in aspect" do
+          it "returns an url to the image with full crop coordinates" do
+            download_args = { uuid: photo.uuid, file_extension: "jpg",
+                              width: photo.width, height: photo.height, aspect: "square",
+                              crop: { x1: 0, y1: 0, x2: photo.width, y2: photo.height } }
+            expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+            photo.url(aspect: "square")
+          end
+        end
+
+        context "image does not fit in aspect" do
+          before do
+            photo.width = 100
+            photo.height = 50
+          end
+
+          it "returns an url to the image with centered crop coordinates for the aspect" do
+            download_args = { uuid: photo.uuid, file_extension: "jpg",
+                              width: photo.width, height: photo.height, aspect: :square,
+                              crop: { x1: 25, y1: 0, x2: 75, y2: 50 } }
+            expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+            photo.url(aspect: :square)
+          end
+        end
       end
     end
   end
 
   describe "#extension_to_content_type_white_list" do
-
     it "returns an empty array if not override" do
       expect(new_photo.extension_to_content_type_white_list).to be_empty
     end
-
   end
 end

@@ -68,7 +68,8 @@ module ImageSystem
       end
 
       def set_crop_options_for_url(options = {})
-        crop = crops.crop_for(options[:aspect])
+        aspect = options[:aspect]
+        crop = crops.crop_for(aspect) || "#{self.class.model_name}Crop".constantize.default_crop(self, aspect)
         crop_args = crop ? { crop: { x1: crop.x1, y1: crop.y1, x2: crop.x2, y2: crop.y2 } } : {}
         options.merge!(crop_args)
       end
