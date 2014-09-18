@@ -62,13 +62,13 @@ module ImageSystem
     private
 
       def set_url_options(options = {})
-        defaults = { width: width, height: height, aspect: :original }
+        defaults = { aspect: :original }
         options = defaults.merge(options)
         options.merge!({ uuid: self.uuid, file_extension: self.file_extension })
       end
 
       def set_crop_options_for_url(options = {})
-        aspect = options[:aspect]
+        aspect = options.delete(:aspect)
         crop = crops.crop_for(aspect) || "#{self.class.model_name}Crop".constantize.default_crop(self, aspect)
         crop_args = crop ? { crop: { x1: crop.x1, y1: crop.y1, x2: crop.x2, y2: crop.y2 } } : {}
         options.merge!(crop_args)

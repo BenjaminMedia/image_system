@@ -191,32 +191,32 @@ describe ImageSystem::Concerns::Image do
       end
 
       it "returns an url to the image" do
-        download_args = { uuid: photo.uuid, file_extension: "jpg", width: photo.width, height: photo.height, aspect: :original }
-        expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+        download_args = { uuid: photo.uuid, file_extension: "jpg", aspect: :original }
+        expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args.except(:aspect))
         photo.url
       end
 
       it "returns an url to the image with download option to true" do
-        download_args = { uuid: photo.uuid, file_extension: "jpg", width: photo.width, height: photo.height, aspect: :original, download: true }
-        expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+        download_args = { uuid: photo.uuid, file_extension: "jpg", aspect: :original, download: true }
+        expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args.except(:aspect))
         photo.url(download: true)
       end
 
       it "returns an url to the image with download option to true(string passed)" do
-        download_args = { uuid: photo.uuid, file_extension: "jpg", width: photo.width, height: photo.height, aspect: :original, download: "true" }
-        expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+        download_args = { uuid: photo.uuid, file_extension: "jpg", aspect: :original, download: "true" }
+        expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args.except(:aspect))
         photo.url(download: "true")
       end
 
       it "returns an url to the image with the given width and height" do
-        download_args = { uuid: photo.uuid, file_extension: "jpg", width: 100, height: 100, aspect: :original }
-        expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
-        photo.url(width: 100, height: 100)
+        download_args = { uuid: photo.uuid, file_extension: "jpg", aspect: :original, width: 80, height: 50 }
+        expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args.except(:aspect))
+        photo.url(width: 80, height: 50)
       end
 
       it "returns an url to the image with the given aspect" do
-        download_args = { uuid: photo.uuid, file_extension: "jpg", width: photo.width, height: photo.height, aspect: "square", crop: { x1: 0, y1: 0, x2: 100, y2: 100 } }
-        expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+        download_args = { uuid: photo.uuid, file_extension: "jpg", aspect: "square", crop: { x1: 0, y1: 0, x2: 100, y2: 100 } }
+        expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args.except(:aspect))
         photo.url(aspect: "square")
       end
 
@@ -224,18 +224,16 @@ describe ImageSystem::Concerns::Image do
         let(:photo_crop) { create(:photo_crop, photo: photo, aspect: "square") }
 
         it "returns an url to the image with the given aspect and the crop coordinates" do
-          download_args = { uuid: photo.uuid, file_extension: "jpg",
-                            width: photo.width, height: photo.height, aspect: "square",
+          download_args = { uuid: photo.uuid, file_extension: "jpg", aspect: "square",
                             crop: { x1: photo_crop.x1, y1: photo_crop.y1, x2: photo_crop.x2, y2: photo_crop.y2 } }
-          expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+          expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args.except(:aspect))
           photo.url(aspect: "square")
         end
 
         it "returns an url to the image with the given aspect and the crop coordinates (aspect name given in symbol)" do
-          download_args = { uuid: photo.uuid, file_extension: "jpg",
-                            width: photo.width, height: photo.height, aspect: :square,
+          download_args = { uuid: photo.uuid, file_extension: "jpg", aspect: :square,
                             crop: { x1: photo_crop.x1, y1: photo_crop.y1, x2: photo_crop.x2, y2: photo_crop.y2 } }
-          expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+          expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args.except(:aspect))
           photo.url(aspect: :square)
         end
       end
@@ -243,10 +241,9 @@ describe ImageSystem::Concerns::Image do
       context "crops does not exists" do
         context "image fits in aspect" do
           it "returns an url to the image with full crop coordinates" do
-            download_args = { uuid: photo.uuid, file_extension: "jpg",
-                              width: photo.width, height: photo.height, aspect: "square",
+            download_args = { uuid: photo.uuid, file_extension: "jpg", aspect: "square",
                               crop: { x1: 0, y1: 0, x2: photo.width, y2: photo.height } }
-            expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+            expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args.except(:aspect))
             photo.url(aspect: "square")
           end
         end
@@ -258,10 +255,9 @@ describe ImageSystem::Concerns::Image do
           end
 
           it "returns an url to the image with centered crop coordinates for the aspect" do
-            download_args = { uuid: photo.uuid, file_extension: "jpg",
-                              width: photo.width, height: photo.height, aspect: :square,
+            download_args = { uuid: photo.uuid, file_extension: "jpg", aspect: :square,
                               crop: { x1: 25, y1: 0, x2: 75, y2: 50 } }
-            expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+            expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args.except(:aspect))
             photo.url(aspect: :square)
           end
         end
