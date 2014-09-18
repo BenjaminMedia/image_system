@@ -151,6 +151,16 @@ describe ImageSystem::CDN::CommunicationSystem do
       expect(res).to include("download=true")
     end
 
+    it "returns an image with aspect ratio mode set to max" do
+      res = subject.download(uuid: @uuid, file_extension: "jpg", download: "true")
+      expect(res).to include("mode=max")
+    end
+
+    it "returns an image with aspect ratio mode set to the given option" do
+      res = subject.download(uuid: @uuid, file_extension: "jpg", download: "true", mode: "crop")
+      expect(res).to include("mode=crop")
+    end
+
     it "returns an image with the specified cropping coordinates" do
       coordinates = {crop: { x1: 155, y1: 124, x2: 796, y2: 568 } }
       args = { uuid: @uuid, file_extension: "jpg" }.merge(coordinates)
