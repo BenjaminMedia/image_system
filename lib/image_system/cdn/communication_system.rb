@@ -22,7 +22,8 @@ module ImageSystem
         crop = options.delete(:crop)
         options = options.merge(crop_options(crop))
         options = default_download_options.merge(options)
-        params = set_aspect_options(options).delete_if { |k, v| v.nil? }.to_param
+        options[:mode] ||= 'max'
+        params = options.delete_if { |k, v| v.nil? }.to_param
 
         # there is default params so its never gonna be empty
         url_to_image(uuid, file_extension, params)
@@ -76,7 +77,7 @@ module ImageSystem
       end
 
       def self.default_download_options
-        { quality: CDN_DEFAULT_JPEG_QUALITY, aspect: :original }
+        { quality: CDN_DEFAULT_JPEG_QUALITY }
       end
 
       def self.set_upload_options(options)
@@ -88,12 +89,6 @@ module ImageSystem
 
         options[:destination_file_name] = "#{uuid}.#{file_extension}"
         default_upload_options.merge(options)
-      end
-
-      def self.set_aspect_options(options = default_download_options)
-        aspect = options.delete(:aspect)
-        options[:mode] = aspect.to_sym == :original ?  "max" : "crop"
-        options
       end
 
       def self.rename_args_validation(uuid, new_uuid)
