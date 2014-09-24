@@ -62,8 +62,6 @@ module ImageSystem
     private
 
       def set_url_options(options = {})
-        defaults = { aspect: :original }
-        options = defaults.merge(options)
         options.merge!({ uuid: self.uuid, file_extension: self.file_extension })
       end
 

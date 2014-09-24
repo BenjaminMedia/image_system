@@ -33,7 +33,7 @@ class <%= class_name.camelize %>Crop < ActiveRecord::Base
   end
 
   def self.default_crop(image, aspect)
-    if aspect.to_sym == :original
+    if aspect.nil? || aspect.to_sym == :original
       nil
     else
       new_dimensions = calculate_dimensions(image.width, image.height, aspect_ratios[aspect])
