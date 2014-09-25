@@ -20,10 +20,12 @@ module ImageSystem
         raise ArgumentError.new("File extension is not set") if file_extension.blank?
 
         crop = options.delete(:crop)
-        options = options.merge(crop_options(crop))
         options = default_download_options.merge(options)
-        options[:mode] ||= 'max'
         params = options.delete_if { |k, v| v.nil? }.to_param
+
+        # Crops has to be in the end to work with encoded commas
+        options_for_crop = crop_options(crop)
+        params += "&#{options_for_crop.to_param}" if options_for_crop
 
         # there is default params so its never gonna be empty
         url_to_image(uuid, file_extension, params)
@@ -77,7 +79,7 @@ module ImageSystem
       end
 
       def self.default_download_options
-        { quality: CDN_DEFAULT_JPEG_QUALITY }
+        { quality: CDN_DEFAULT_JPEG_QUALITY, mode: 'max' }
       end
 
       def self.set_upload_options(options)
@@ -124,7 +126,7 @@ module ImageSystem
       end
 
       def self.crop_options(crop)
-        return {} unless crop
+        return nil unless crop
 
         exception_message = "Wrong cropping coordinates format. The crop coordinates should be given in the following format { crop: { x1: value, y1: value, x2: value, y2: value } } "
         # checks if all the options are set for cropping

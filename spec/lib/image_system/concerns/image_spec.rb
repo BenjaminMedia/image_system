@@ -262,6 +262,14 @@ describe ImageSystem::Concerns::Image do
           end
         end
       end
+
+      context "aspect is not specified" do
+        it "returns an url to the image without crop coordinates" do
+          download_args = { uuid: photo.uuid, file_extension: "jpg" }
+          expect(ImageSystem::CDN::CommunicationSystem).to receive(:download).with(download_args)
+          photo.url()
+        end
+      end
     end
   end
 

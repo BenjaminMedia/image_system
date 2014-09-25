@@ -194,6 +194,13 @@ describe ImageSystem::CDN::CommunicationSystem do
       res = subject.download(args)
       expect(res).to_not include("crop")
     end
+
+    it "returns a url with cropping params at the end" do
+      coordinates = { crop: { x1: 155, y2: 568, x2: 796, y1: 124 } }
+      args = { uuid: @uuid, file_extension: "jpg" }.merge(coordinates)
+      res = subject.download(args)
+      expect(res.split('&').last).to eq 'crop=155px%2C124px%2C796px%2C568px'
+    end
   end
 
   describe ".rename" do
