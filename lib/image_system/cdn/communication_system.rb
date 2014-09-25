@@ -19,10 +19,9 @@ module ImageSystem
         file_extension = options.delete(:file_extension)
         raise ArgumentError.new("File extension is not set") if file_extension.blank?
 
+        options = default_download_options.merge(options)
         crop = options.delete(:crop)
         options = options.merge(crop_options(crop))
-        options = default_download_options.merge(options)
-        options[:mode] ||= 'max'
         params = options.delete_if { |k, v| v.nil? }.to_param
 
         # there is default params so its never gonna be empty
@@ -77,7 +76,7 @@ module ImageSystem
       end
 
       def self.default_download_options
-        { quality: CDN_DEFAULT_JPEG_QUALITY }
+        { quality: CDN_DEFAULT_JPEG_QUALITY, mode: 'max' }
       end
 
       def self.set_upload_options(options)
